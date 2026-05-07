@@ -1,0 +1,198 @@
+/*
+ * src/index.css
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Глобальные стили портала «АО Финансовый центр».
+ *
+ * Содержит:
+ *   • импорт Inter и Raleway из Google Fonts
+ *   • Tailwind base / components / utilities
+ *   • базовую типографику страницы
+ *   • переиспользуемые классы .input, .btn, .card, .label-eyebrow
+ *   • SVG-паттерн из логотипа (декоративный фон) как утилиту .bg-fc-pattern
+ * ─────────────────────────────────────────────────────────────────────────────
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Raleway:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* BASE                                                                        */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply font-sans bg-slate-50 text-slate-900;
+    font-feature-settings: 'cv11', 'ss01', 'ss03';  /* Inter stylistic sets */
+  }
+
+  /* Заголовки — Raleway (шрифт-партнёр), плотный визуальный вес */
+  h1, h2, h3, h4 {
+    @apply font-display tracking-fc-tight text-fc-navy-900;
+  }
+
+  /* Минимальный размер шрифта input/select на iOS чтобы не зумило */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  @screen sm {
+    input, select, textarea {
+      font-size: 14px;
+    }
+  }
+
+  /* Selection — фирменный navy */
+  ::selection {
+    @apply bg-fc-navy-700 text-white;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* COMPONENTS                                                                  */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+@layer components {
+
+  /* ── Form input ──────────────────────────────────────────────────────── */
+  .input {
+    @apply w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm
+           text-slate-900 outline-none transition
+           focus:ring-2 focus:ring-fc-blue/20 focus:border-fc-blue
+           placeholder:text-slate-300
+           disabled:bg-slate-50 disabled:text-slate-400 disabled:cursor-not-allowed;
+  }
+
+  .input-sm { @apply px-2 py-1 text-xs; }
+  .input-lg { @apply px-4 py-2.5 text-base; }
+
+  .input-error {
+    @apply border-danger ring-2 ring-danger/15;
+  }
+
+  /* ── Button variants ─────────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 rounded-md px-3 py-1.5
+           text-sm font-semibold whitespace-nowrap transition
+           disabled:opacity-50 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-offset-1;
+  }
+
+  .btn-primary {
+    @apply btn bg-fc-navy-700 text-white hover:bg-fc-navy-800
+           focus:ring-fc-navy-500;
+  }
+
+  .btn-secondary {
+    @apply btn bg-fc-blue-500 text-white hover:bg-fc-blue-600
+           focus:ring-fc-blue-300;
+  }
+
+  .btn-ghost {
+    @apply btn border border-slate-200 bg-white text-slate-700 hover:bg-slate-50
+           focus:ring-slate-300;
+  }
+
+  .btn-danger {
+    @apply btn bg-danger text-white hover:bg-red-700
+           focus:ring-red-300;
+  }
+
+  .btn-success {
+    @apply btn bg-success text-white hover:bg-emerald-700
+           focus:ring-emerald-300;
+  }
+
+  /* Размеры */
+  .btn-sm { @apply px-2.5 py-1 text-xs; }
+  .btn-lg { @apply px-4 py-2.5 text-base; }
+
+  /* ── Card ─────────────────────────────────────────────────────────────── */
+  .card {
+    @apply bg-white border border-slate-200 rounded-xl shadow-fc-sm;
+  }
+
+  .card-hover {
+    @apply card hover:border-fc-blue/40 hover:shadow-fc-md transition;
+  }
+
+  /* ── Superset embed — prevent SDK from shrinking iframe to content size ── */
+  .superset-embed {
+    @apply absolute inset-0 overflow-hidden;
+  }
+  .superset-embed > iframe {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    border: 0;
+  }
+
+  /* ── Eyebrow label (UPPERCASE) ───────────────────────────────────────── */
+  .label-eyebrow {
+    @apply text-[10px] font-bold uppercase tracking-fc-eyebrow text-fc-steel-600;
+  }
+
+  /* ── Status pill ─────────────────────────────────────────────────────── */
+  .pill {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold;
+  }
+
+  /* ── Table ───────────────────────────────────────────────────────────── */
+  .data-table {
+    @apply w-full text-sm;
+  }
+  .data-table thead {
+    @apply bg-slate-50 text-fc-steel-600;
+  }
+  .data-table th {
+    @apply text-left text-[10px] font-bold uppercase tracking-fc-eyebrow px-4 py-2.5;
+  }
+  .data-table td {
+    @apply px-4 py-2.5 border-t border-slate-100;
+  }
+  .data-table tbody tr:hover {
+    @apply bg-slate-50;
+  }
+}
+
+/* ────────────────────────────────────────────────────────────────────────── */
+/* UTILITIES                                                                   */
+/* ────────────────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+
+  /* Декоративный фон с диагональными штрихами из логотипа.
+     Использовать на тёмных navy-секциях (sidebar, hero). */
+  .bg-fc-pattern {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%23ffffff' stroke-width='1.5' stroke-opacity='0.06'><path d='M-10 20 L20 -10' /><path d='M0 30 L30 0' /><path d='M10 40 L40 10' /><path d='M20 50 L50 20' /><path d='M30 60 L60 30' /><path d='M40 70 L70 40' /></g></svg>");
+    background-size: 60px 60px;
+  }
+
+  .bg-fc-pattern-dark {
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%2319286d' stroke-width='1.5' stroke-opacity='0.05'><path d='M-10 20 L20 -10' /><path d='M0 30 L30 0' /><path d='M10 40 L40 10' /><path d='M20 50 L50 20' /><path d='M30 60 L60 30' /><path d='M40 70 L70 40' /></g></svg>");
+    background-size: 60px 60px;
+  }
+
+  /* Subtle gradient для hero-секций */
+  .bg-fc-gradient {
+    background-image: linear-gradient(135deg, #19286d 0%, #243879 50%, #19286d 100%);
+  }
+
+  /* Скрыть scrollbar там где он визуально мешает (горизонтальные tabs) */
+  .scrollbar-thin::-webkit-scrollbar { height: 4px; width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: theme('colors.slate.300');
+    border-radius: 2px;
+  }
+}
