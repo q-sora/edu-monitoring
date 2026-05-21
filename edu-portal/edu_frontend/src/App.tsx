@@ -8,6 +8,7 @@ import {
   AppShell,
   DashboardPage,
   SupersetDashboardsPage,
+  AnalyticsGlobalStatsPage,
   TransparencyPage,
   CoveragePage,
   ContingentPage, FinancePage, SciencePage, GraduatesPage, EducationPage, HistoryPage,
@@ -17,8 +18,11 @@ import {
   AnomaliesPage,
   OrganisationsPage, UsersPage, ApprovalsPage, IntegrationsPage, AuditLogPage, ApiKeysPage,
   ProfilePage,
+  CollegesPage,
   NotFoundPage,
 } from "@/portal";
+import DataCatalogPage from "@/features/catalog/DataCatalogPage";
+import UniversalImportPage from "@/features/import/UniversalImportPage";
 
 function IndexRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -62,7 +66,8 @@ export default function App() {
                 <Route path="/data/coefficients"  element={<CoefficientsPage />} />
               </Route>
 
-              <Route path="/dashboards" element={<SupersetDashboardsPage />} />
+              <Route path="/dashboards"              element={<SupersetDashboardsPage />} />
+              <Route path="/analytics/global-stats" element={<AnalyticsGlobalStatsPage />} />
 
               <Route element={<RequirePermission permission="ai_insights.view" />}>
                 <Route path="/reports"        element={<AIReportsPage />} />
@@ -81,6 +86,17 @@ export default function App() {
               <Route element={<RequireRole roles={["superadmin"]} />}>
                 <Route path="/admin/api-keys" element={<ApiKeysPage />} />
               </Route>
+
+              {/* Каталог данных — все авторизованные */}
+              <Route path="/catalog" element={<DataCatalogPage />} />
+
+              {/* Универсальный импорт — admin/superadmin */}
+              <Route element={<RequireRole roles={["admin", "superadmin"]} />}>
+                <Route path="/admin/universal-import" element={<UniversalImportPage />} />
+              </Route>
+
+              {/* Оценка колледжей ТиППО — все авторизованные */}
+              <Route path="/tippo/colleges" element={<CollegesPage />} />
             </Route>
           </Route>
 

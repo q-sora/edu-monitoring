@@ -51,7 +51,7 @@ from app.models.mixins import register_audit_hooks
 
 # ── Router imports ────────────────────────────────────────────────────────────
 from app.api.v1 import admin, auth, coefficients, integrations, science, anomalies
-from app.api.v1 import data_catalog, universal_import
+from app.api.v1 import data_catalog, universal_import, college_assessment
 from app.api.v1.routers import DOMAIN_ROUTERS
 
 logging.basicConfig(
@@ -207,8 +207,9 @@ def create_application() -> FastAPI:
     app.include_router(integrations.router, prefix=API_PREFIX)
     app.include_router(admin.router,        prefix=API_PREFIX)
     app.include_router(anomalies.router,      prefix=API_PREFIX)
-    app.include_router(data_catalog.router,   prefix=API_PREFIX)
-    app.include_router(universal_import.router, prefix=API_PREFIX)
+    app.include_router(data_catalog.router,      prefix=API_PREFIX)
+    app.include_router(universal_import.router,  prefix=API_PREFIX)
+    app.include_router(college_assessment.router, prefix=API_PREFIX)
 
     # ── Health check (no auth required — used by load balancer) ──────────
     @app.get("/health", tags=["System"], include_in_schema=False)

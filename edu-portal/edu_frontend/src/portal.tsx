@@ -18,6 +18,8 @@
 import React, {
   FormEvent, ReactNode, useCallback, useEffect, useState,
 } from "react";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { pageVariants, staggerContainer, staggerItem, fadeInUp } from "@/lib/animations";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, FileCheck2, Plug, FileSearch,
@@ -25,7 +27,7 @@ import {
   Sparkles, Menu, LogOut, UserCircle, ChevronDown, Plus, X, Search,
   Check, AlertTriangle, Loader2, RefreshCw, Clock, ShieldCheck, BarChart3,
   Grid3X3, ArrowUpDown, ChevronUp, Presentation,
-  MessageSquare, RotateCcw, Download, Building,
+  MessageSquare, RotateCcw, Download, Building, Database, FileUp,
 } from "lucide-react";
 
 const ChevronDownIcon = ChevronDown;
@@ -34,9 +36,10 @@ import { useAuth } from "@/auth/AuthContext";
 import BrandHeader from "@/components/layout/BrandHeader";
 import Logo from "@/components/brand/Logo";
 import RegionalAnalytics from "@/features/transparency/RegionalAnalytics";
+import SupersetDashboard from "@/features/analytics/SupersetDashboard";
 import { PresentationEngine } from "@/features/presentations/PresentationEngine";
+import CollegeAssessmentPageComponent from "@/features/tippo/CollegeAssessmentPage";
 import type { PresentationReport as EngineReport } from "@/features/presentations/PresentationEngine";
-import { embedDashboard } from "@superset-ui/embedded-sdk";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
   LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, Legend,
@@ -92,6 +95,10 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: "Аналитика",
     items: [
+      { to: "/catalog",                 label: "Каталог данных",  icon: Database,
+        show: r => ["superadmin", "admin", "management", "data_entry"].includes(r) },
+      { to: "/analytics/global-stats", label: "Дашборды BI",     icon: BarChart3,
+        show: r => ["superadmin", "admin", "management"].includes(r) },
       { to: "/coverage",          label: "Покрытие",       icon: Grid3X3,
         show: r => ["superadmin", "admin"].includes(r) },
       { to: "/data/coefficients", label: "Коэффициенты",   icon: BarChart3,
@@ -117,8 +124,17 @@ const NAV: { section: string; items: NavItem[] }[] = [
         show: r => ["superadmin", "admin"].includes(r) },
       { to: "/admin/audit",         label: "Журнал аудита", icon: FileSearch,
         show: r => ["superadmin", "admin"].includes(r) },
-      { to: "/admin/api-keys",      label: "API ключи",     icon: Key,
+      { to: "/admin/api-keys",         label: "API ключи",          icon: Key,
         show: r => r === "superadmin" },
+      { to: "/admin/universal-import", label: "Универс. импорт",    icon: FileUp,
+        show: r => ["superadmin", "admin"].includes(r) },
+    ],
+  },
+  {
+    section: "ТиППО",
+    items: [
+      { to: "/tippo/colleges", label: "Оценка колледжей", icon: Building2,
+        show: r => ["superadmin", "admin", "management", "data_entry"].includes(r) },
     ],
   },
 ];
@@ -138,43 +154,61 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       <BrandHeader dark showProductName />
 
       <nav className="flex-1 overflow-y-auto scrollbar-thin px-2.5 pb-4 space-y-5 pt-5">
-        {NAV.map(section => {
-          const visibleItems = section.items.filter(i => i.show(role));
-          if (visibleItems.length === 0) return null;
+        <LayoutGroup id="sidebar-nav">
+          {NAV.map(section => {
+            const visibleItems = section.items.filter(i => i.show(role));
+            if (visibleItems.length === 0) return null;
 
-          return (
-            <div key={section.section}>
-              <p className="px-3 mb-2 label-eyebrow !text-white/40">
-                {section.section}
-              </p>
-              <div className="space-y-0.5">
-                {visibleItems.map(item => (
-                  <NavLink
-                    key={item.to}
-                    to={item.to}
-                    onClick={onNavigate}
-                    className={({ isActive }) =>
-                      `flex items-center gap-2.5 px-3 py-2 rounded-md text-sm transition-colors ${
-                        isActive
-                          ? "bg-fc-blue-500 text-white font-semibold shadow-fc-sm"
-                          : "text-white/70 hover:bg-white/5 hover:text-white"
-                      }`
-                    }
-                  >
-                    <item.icon className="w-4 h-4 shrink-0" />
-                    <span className="truncate flex-1">{item.label}</span>
-                    {item.to === "/anomalies" && criticalCount > 0 && (
-                      <span className="shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white
-                                       text-[10px] font-bold flex items-center justify-center tabular-nums">
-                        {criticalCount > 99 ? "99+" : criticalCount}
-                      </span>
-                    )}
-                  </NavLink>
-                ))}
+            return (
+              <div key={section.section}>
+                <p className="px-3 mb-2 label-eyebrow !text-white/40">
+                  {section.section}
+                </p>
+                <div className="space-y-0.5">
+                  {visibleItems.map(item => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      onClick={onNavigate}
+                      className={({ isActive }) =>
+                        `group relative flex items-center gap-2.5 px-3 py-2 rounded-md text-sm${
+                          isActive ? "" : " hover:bg-white/5"
+                        }`
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          {isActive && (
+                            <motion.div
+                              layoutId="nav-active-pill"
+                              className="absolute inset-0 rounded-md bg-fc-blue-500 shadow-fc-sm"
+                              style={{ zIndex: 0 }}
+                              transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                            />
+                          )}
+                          <item.icon className={`relative z-10 w-4 h-4 shrink-0 transition-colors ${
+                            isActive ? "text-white" : "text-white/60 group-hover:text-white"
+                          }`} />
+                          <span className={`relative z-10 truncate flex-1 transition-colors ${
+                            isActive ? "text-white font-semibold" : "text-white/70 group-hover:text-white"
+                          }`}>
+                            {item.label}
+                          </span>
+                          {item.to === "/anomalies" && criticalCount > 0 && (
+                            <span className="relative z-10 shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white
+                                             text-[10px] font-bold flex items-center justify-center tabular-nums">
+                              {criticalCount > 99 ? "99+" : criticalCount}
+                            </span>
+                          )}
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </LayoutGroup>
       </nav>
 
       <div className="px-4 py-3 border-t border-white/10">
@@ -272,9 +306,18 @@ export function AppShell() {
         </header>
 
         <main className="flex-1 overflow-y-auto p-5 lg:p-7">
-          <div className="max-w-6xl mx-auto">
-            <Outlet />
-          </div>
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.div
+              key={location.pathname}
+              className="max-w-6xl mx-auto"
+              variants={pageVariants}
+              initial="initial"
+              animate="enter"
+              exit="exit"
+            >
+              <Outlet />
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
     </div>
@@ -287,6 +330,7 @@ export function AppShell() {
 
 interface AdminStats {
   organizations: number;
+  total_students: number;
   pending_science: number;
   pending_contingent: number;
   redis_version?: string;
@@ -325,12 +369,17 @@ function AdminDashboard() {
 
       {stats && (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-            <StatCard accent="navy"  icon={Building}       label="Организаций"    value={stats.organizations ?? 0}                             hint="В реестре" />
-            <StatCard accent="blue"  icon={FlaskConical}   label="Наука (заявки)" value={stats.pending_science ?? 0}                           hint="На согласовании" />
-            <StatCard accent="cyan"  icon={GraduationCap}  label="Контингент"     value={stats.pending_contingent ?? 0}                         hint="На согласовании" />
-            <StatCard accent="steel" icon={ShieldCheck}    label="Аптайм"         value={`${Math.floor((stats.uptime_seconds ?? 0) / 3600)}ч`}  hint="Сервер работает" />
-          </div>
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            <StatCard accent="navy"  icon={Building}       label="Организаций"    value={stats.organizations ?? 0}                                                                              hint="В реестре" />
+            <StatCard accent="cyan"  icon={GraduationCap}  label="Контингент"     value={(stats.total_students ?? 0).toLocaleString("ru-RU")}                                                        hint="Обучающихся (всего)" />
+            <StatCard accent="blue"  icon={FlaskConical}   label="На проверке"    value={(stats.pending_contingent ?? 0) + (stats.pending_science ?? 0)}                                             hint="Записей ожидают согласования" />
+            <StatCard accent="steel" icon={ShieldCheck}    label="Аптайм"         value={`${Math.floor((stats.uptime_seconds ?? 0) / 3600)}ч`}                                                      hint="Сервер работает" />
+          </motion.div>
 
           {stats.by_status && (
             <div className="card p-5 mb-6">
@@ -662,12 +711,17 @@ export function TransparencyPage() {
       {error && <ErrorBox message={error} />}
 
       {avg && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+        <motion.div
+          className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
           <StatCard accent="navy"   label="Расходы на студента"  value={avg.cost_per_student ? `${(avg.cost_per_student / 1000).toFixed(0)} тыс ₸` : "—"} hint="Среднее по системе" />
           <StatCard accent="blue"   label="ФОТ от бюджета"       value={avg.payroll_pct ? `${avg.payroll_pct}%` : "—"} hint="Доля фонда оплаты труда" />
           <StatCard accent="cyan"   label="Грантовое обеспечение" value={avg.grant_pct ? `${avg.grant_pct}%` : "—"} hint="Студентов на госгранте" />
           <StatCard accent="steel"  label="Трудоустройство 6 мес" value={avg.employment_rate ? `${avg.employment_rate}%` : "—"} hint="Доля трудоустроенных" />
-        </div>
+        </motion.div>
       )}
 
       {!loading && !error && (
@@ -1993,62 +2047,95 @@ interface SupersetDash {
 }
 
 function EmbeddedDashboard({ dash }: { dash: SupersetDash }) {
-  const mountRef = React.useRef<HTMLDivElement>(null);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!mountRef.current) return;
-    const el = mountRef.current;
-    let cancelled = false;
-
-    const fetchToken = async () => {
-      const resp = await client.get<{ token: string }>(
-        `/admin/superset/guest-token/${dash.id}`
-      );
-      return resp.data.token;
-    };
-
-    embedDashboard({
-      id: dash.embedded_uuid,
-      supersetDomain: window.location.origin,
-      mountPoint: el,
-      fetchGuestToken: fetchToken,
-      dashboardUiConfig: {
-        hideTitle: true,
-        hideChartControls: false,
-        filters: { expanded: false },
-      },
-    })
-      .then(() => { if (!cancelled) setLoading(false); })
-      .catch((e: Error) => { if (!cancelled) { setErr(e.message); setLoading(false); } });
-
-    return () => { cancelled = true; el.innerHTML = ""; };
-  }, [dash.id, dash.embedded_uuid]);
-
   return (
-    <div className="relative w-full h-full">
-      {loading && !err && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
-          <Loader2 className="w-6 h-6 animate-spin text-fc-cyan-500" />
-        </div>
-      )}
-      {err && (
-        <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="card p-6 text-center max-w-sm">
-            <AlertTriangle className="w-8 h-8 text-warning mx-auto mb-2" />
-            <p className="text-sm text-fc-navy-700 font-medium">Не удалось загрузить дашборд</p>
-            <p className="text-xs text-fc-steel-500 mt-1">{err}</p>
-          </div>
-        </div>
-      )}
-      <div ref={mountRef} className="superset-embed" />
-    </div>
+    <SupersetDashboard
+      dashboardId={dash.id}
+      embeddedUuid={dash.embedded_uuid}
+    />
   );
 }
 
 export { default as CoefficientsPage } from "@/features/coefficients/CoefficientsPage";
 export { default as AnomaliesPage }    from "@/features/anomalies/AnomaliesPage";
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ANALYTICS GLOBAL STATS — tabbed Superset BI dashboards
+// ════════════════════════════════════════════════════════════════════════════
+
+const BI_DASHBOARDS = [
+  { id: 2, uuid: "a1b2c3d4-0001-4aaa-b001-100000000001", label: "Контингент",  icon: GraduationCap, accent: "text-fc-navy-700  bg-fc-navy-50"  },
+  { id: 3, uuid: "a1b2c3d4-0002-4aaa-b002-100000000002", label: "Финансы",     icon: Wallet,        accent: "text-fc-blue-600 bg-fc-blue-50"  },
+  { id: 4, uuid: "a1b2c3d4-0003-4aaa-b003-100000000003", label: "Наука",       icon: FlaskConical,  accent: "text-fc-cyan-600 bg-fc-cyan-50"  },
+  { id: 5, uuid: "a1b2c3d4-0004-4aaa-b004-100000000004", label: "Выпускники",  icon: UsersRound,    accent: "text-fc-steel-600 bg-fc-steel-50" },
+  { id: 6, uuid: "a1b2c3d4-0005-4aaa-b005-100000000005", label: "Образование", icon: BookOpen,      accent: "text-fc-purple-600 bg-fc-purple-50" },
+] as const;
+
+export function AnalyticsGlobalStatsPage() {
+  const [activeIdx, setActiveIdx] = useState(0);
+  const active = BI_DASHBOARDS[activeIdx];
+
+  return (
+    <>
+      <PageHeader
+        title="Аналитика BI"
+        subtitle="Интерактивные дашборды системы мониторинга образования"
+        actions={
+          <a href="/bi/superset/welcome" target="_blank" rel="noopener noreferrer"
+             className="btn-ghost text-xs flex items-center gap-1.5">
+            <BarChart3 className="w-3.5 h-3.5" /> Полный Superset
+          </a>
+        }
+      />
+
+      {/* Domain tabs */}
+      <div className="flex gap-1 mb-4 bg-slate-100 p-1 rounded-lg overflow-x-auto shrink-0">
+        {BI_DASHBOARDS.map((d, i) => {
+          const Icon = d.icon;
+          const isActive = i === activeIdx;
+          return (
+            <button
+              key={d.id}
+              onClick={() => setActiveIdx(i)}
+              className={`relative flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold
+                          whitespace-nowrap transition-colors ${
+                isActive ? "text-white" : "text-fc-steel-600 hover:bg-white/70 hover:text-fc-navy-700"
+              }`}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="bi-tab-active"
+                  className="absolute inset-0 bg-fc-navy-700 rounded-md shadow-fc-sm"
+                  style={{ zIndex: 0 }}
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                />
+              )}
+              <Icon className="relative z-10 w-3.5 h-3.5" />
+              <span className="relative z-10">{d.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Embedded dashboard */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={active.id}
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+          exit={{ opacity: 0, transition: { duration: 0.1 } }}
+          className="card overflow-hidden"
+          style={{ height: "calc(100vh - 230px)" }}
+        >
+          <SupersetDashboard
+            dashboardId={active.id}
+            embeddedUuid={active.uuid}
+          />
+        </motion.div>
+      </AnimatePresence>
+    </>
+  );
+}
 
 export function SupersetDashboardsPage() {
   const [activeDash, setActiveDash] = useState<SupersetDash | null>(null);
@@ -2069,50 +2156,85 @@ export function SupersetDashboardsPage() {
         }
       />
 
-      {activeDash === null ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {loading && (
-            <div className="col-span-full flex justify-center py-10">
-              <Loader2 className="w-6 h-6 animate-spin text-fc-cyan-500" />
-            </div>
-          )}
-          {dashboards.map(d => (
-            <div key={d.id} className="card card-hover p-5 cursor-pointer"
-              onClick={() => setActiveDash(d)}>
-              <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-fc-cyan-50 shrink-0">
-                  <BarChart3 className="w-5 h-5 text-fc-cyan-600" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-display font-bold text-fc-navy-900 text-sm leading-snug">
-                    {d.title}
-                  </p>
-                  <p className="text-xs text-fc-steel-500 mt-1">{d.description}</p>
-                </div>
-              </div>
-              <button className="btn-primary mt-4 w-full text-sm">
-                Открыть дашборд
-              </button>
-            </div>
-          ))}
-          <div className="card p-5 border-dashed border-2 border-fc-steel-200 flex flex-col
-                          items-center justify-center gap-2 text-center min-h-[140px]">
-            <BarChart3 className="w-8 h-8 text-fc-steel-300" />
-            <p className="text-sm font-semibold text-fc-steel-400">
-              Superset — полный интерфейс
-            </p>
-            <a href="/bi/superset/welcome"
-               target="_blank" rel="noopener noreferrer"
-               className="btn-secondary text-xs mt-1">
-              Открыть Superset →
-            </a>
-          </div>
-        </div>
-      ) : (
-        <div className="card overflow-hidden" style={{ height: "calc(100vh - 180px)" }}>
-          <EmbeddedDashboard dash={activeDash} />
-        </div>
-      )}
+      <AnimatePresence mode="wait">
+        {activeDash === null ? (
+          <motion.div
+            key="list"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            {loading
+              ? Array.from({ length: 5 }).map((_, i) => (
+                  <motion.div key={i} variants={staggerItem}
+                    className="card p-5 space-y-3 animate-pulse">
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-fc-cyan-50 shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3 w-40 bg-fc-navy-100 rounded" />
+                        <div className="h-2.5 w-full bg-slate-100 rounded" />
+                        <div className="h-2.5 w-3/4 bg-slate-100 rounded" />
+                      </div>
+                    </div>
+                    <div className="h-8 bg-fc-navy-50 rounded-md" />
+                  </motion.div>
+                ))
+              : dashboards.map(d => (
+                  <motion.div
+                    key={d.id}
+                    variants={staggerItem}
+                    className="card card-hover p-5 cursor-pointer"
+                    onClick={() => setActiveDash(d)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 rounded-lg bg-fc-cyan-50 shrink-0">
+                        <BarChart3 className="w-5 h-5 text-fc-cyan-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-display font-bold text-fc-navy-900 text-sm leading-snug">
+                          {d.title}
+                        </p>
+                        <p className="text-xs text-fc-steel-500 mt-1">{d.description}</p>
+                      </div>
+                    </div>
+                    <button className="btn-primary mt-4 w-full text-sm">
+                      Открыть дашборд
+                    </button>
+                  </motion.div>
+                ))
+            }
+            <motion.div
+              variants={staggerItem}
+              className="card p-5 border-dashed border-2 border-fc-steel-200 flex flex-col
+                         items-center justify-center gap-2 text-center min-h-[140px]"
+            >
+              <BarChart3 className="w-8 h-8 text-fc-steel-300" />
+              <p className="text-sm font-semibold text-fc-steel-400">
+                Superset — полный интерфейс
+              </p>
+              <a href="/bi/superset/welcome"
+                 target="_blank" rel="noopener noreferrer"
+                 className="btn-secondary text-xs mt-1">
+                Открыть Superset →
+              </a>
+            </motion.div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="embed"
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
+            exit={{ opacity: 0, transition: { duration: 0.12 } }}
+            className="card overflow-hidden"
+            style={{ height: "calc(100vh - 180px)" }}
+          >
+            <EmbeddedDashboard dash={activeDash} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
@@ -3192,6 +3314,19 @@ export function PresentationsPage() {
           {report && <SlideDeckViewer report={report} />}
         </div>
       </div>
+    </div>
+  );
+}
+
+export function CollegesPage() {
+  const { user } = useAuth();
+  return (
+    <div className="p-6 space-y-5">
+      <div>
+        <h1 className="text-2xl font-display font-bold text-fc-navy-900">Оценка эффективности колледжей</h1>
+        <p className="text-sm text-fc-steel-500 mt-1">Рейтинг ТиППО по методике АО «Финансовый центр»</p>
+      </div>
+      <CollegeAssessmentPageComponent userRole={user?.role} />
     </div>
   );
 }
