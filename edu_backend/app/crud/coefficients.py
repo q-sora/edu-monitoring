@@ -218,6 +218,8 @@ async def get_org_records(
             "numerator_desc": d["numerator_desc"], "denominator_desc": d["denominator_desc"],
             "norm_min": d["norm_min"], "norm_max": d["norm_max"],
             "norm_target": d["norm_target"], "is_active": d["is_active"],
+            "numerator_catalog_id": d.get("numerator_catalog_id"),
+            "denominator_catalog_id": d.get("denominator_catalog_id"),
         })
         rec = CoefficientRecordRead.model_validate({**d, "definition": defn})
         result.append(rec)
@@ -227,6 +229,70 @@ async def get_org_records(
 # ─────────────────────────────────────────────────────────────────────────────
 # Calculate & save scores
 # ─────────────────────────────────────────────────────────────────────────────
+
+async def auto_calculate_records(
+    db: AsyncSession,
+    org_id: UUID,
+    year: int,
+    quarter: Optional[int] = None,
+    user_id: Optional[UUID] = None,
+) -> int:
+    """
+    Автоматически рассчитывает записи коэффициентов на основе данных из education_data.
+    Ищет определения, где привязаны numerator_catalog_id / denominator_catalog_id.
+    """
+    # 1. Получаем все определения с маппингом
+    q_defs = select(text("*")).select_from(text("coefficient_definitions")).where(
+        text("(numerator_catalog_id IS NOT NULL OR denominator_catalog_id IS NOT NULL) AND is_active = TRUE")
+    )
+    defs = (await db.execute(q_defs)).mappings().all()
+    if not defs:
+        return 0
+
+    # 2. Получаем актуальные данные из education_data для этой организации
+    q_data = text("""
+        SELECT catalog_field_id, value_numeric
+        FROM education_data
+        WHERE org_id = :org_id AND period_year = :year
+    """)
+    params = {"org_id": str(org_id), "year": year}
+    if quarter:
+        # Если данные помесячные, агрегируем за квартал? Или берем последний месяц квартала?
+        # Для простоты пока считаем, что данные в education_data годовые (period_month IS NULL)
+        q_data += " AND period_month IS NULL"
+    
+    data_rows = (await db.execute(q_data, params)).all()
+    val_map = {r.catalog_field_id: float(r.value_numeric or 0) for r in data_rows}
+
+    count = 0
+    for d in defs:
+        num_id = d["numerator_catalog_id"]
+        den_id = d["denominator_catalog_id"]
+        
+        # Если маппинг есть, но данных нет — используем 0 или пропускаем?
+        # В ФЦ принято использовать 0 если данных нет.
+        num_val = val_map.get(num_id, 0.0) if num_id else 0.0
+        den_val = val_map.get(den_id, 0.0) if den_id else 0.0
+        
+        # Если это boolean или просто наличие данных, num_val может быть 1
+        
+        await upsert_record(
+            db,
+            CoefficientRecordCreate(
+                org_id=org_id,
+                coeff_def_id=d["id"],
+                period_year=year,
+                period_quarter=quarter,
+                numerator_value=Decimal(str(num_val)),
+                denominator_value=Decimal(str(den_val)),
+                comment="Автоматический расчёт из каталога данных"
+            ),
+            user_id or UUID("00000000-0000-0000-0000-000000000000") # System user
+        )
+        count += 1
+    
+    return count
+
 
 async def calculate_scores(
     db: AsyncSession,

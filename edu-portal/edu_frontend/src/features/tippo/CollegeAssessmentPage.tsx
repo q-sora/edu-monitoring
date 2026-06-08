@@ -671,17 +671,97 @@ function SpecialtiesTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: "import",       label: "Загрузить файл",  icon: Upload,    roles: ["superadmin", "admin"] },
   { key: "ratings",      label: "Рейтинг",          icon: Trophy,    roles: null },
   { key: "regions",      label: "По регионам",      icon: MapPin,    roles: null },
   { key: "specialties",  label: "Специальности",    icon: Building2, roles: null },
+  { key: "methodology",  label: "Методология",      icon: Trophy,    roles: null },
+  { key: "import",       label: "Загрузить файл",  icon: Upload,    roles: ["superadmin", "admin"] },
 ] as const;
 
 type TabKey = typeof TABS[number]["key"];
 
+function MethodologyTab() {
+  return (
+    <div className="max-w-4xl space-y-6">
+      <div className="card">
+        <h3 className="text-lg font-bold text-fc-navy-800 mb-4 flex items-center gap-2">
+          <Trophy className="w-5 h-5 text-warning" />
+          Методика оценки эффективности колледжей ТиППО
+        </h3>
+        <p className="text-fc-steel-600 mb-4">
+          Оценка проводится АО «Финансовый центр» на основе анализа деятельности организаций технического и профессионального, послесреднего образования по ряду ключевых показателей. Система оценки разделена на два уровня: уровень организации и уровень образовательной программы (специальности).
+        </p>
+
+        <div className="space-y-6">
+          <section>
+            <h4 className="font-bold text-fc-navy-700 mb-2 border-b border-fc-navy-100 pb-1">1. Показатели уровня колледжа</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="p-3 bg-fc-navy-50 rounded-lg">
+                <p className="font-semibold text-fc-navy-800">Инфраструктура и загрузка</p>
+                <ul className="list-disc list-inside mt-1 text-fc-steel-600 space-y-1">
+                  <li>Наличие и состояние ремонта</li>
+                  <li>% загрузки проектной мощности</li>
+                  <li>Наличие спортзала и общежития</li>
+                  <li>Библиотечный фонд и читаемость</li>
+                </ul>
+              </div>
+              <div className="p-3 bg-fc-navy-50 rounded-lg">
+                <p className="font-semibold text-fc-navy-800">Кадровый потенциал и доходы</p>
+                <ul className="list-disc list-inside mt-1 text-fc-steel-600 space-y-1">
+                  <li>Доля педагогов-мастеров и экспертов</li>
+                  <li>Педагоги с ученой степенью</li>
+                  <li>Доход от мини-предприятий</li>
+                  <li>Привлеченные спонсорские средства</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section>
+            <h4 className="font-bold text-fc-navy-700 mb-2 border-b border-fc-navy-100 pb-1">2. Показатели уровня специальности</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div className="p-3 bg-fc-blue-50 rounded-lg">
+                <p className="font-semibold text-fc-blue-800">Качество обучения и WS</p>
+                <ul className="list-disc list-inside mt-1 text-fc-steel-600 space-y-1">
+                  <li>Оснащенность лабораторий</li>
+                  <li>Результаты WorldSkills (РК и межд.)</li>
+                  <li>Качество знаний и успеваемость</li>
+                  <li>Демонстрационные экзамены</li>
+                </ul>
+              </div>
+              <div className="p-3 bg-fc-blue-50 rounded-lg">
+                <p className="font-semibold text-fc-blue-800">Трудоустройство и партнерство</p>
+                <ul className="list-disc list-inside mt-1 text-fc-steel-600 space-y-1">
+                  <li>% трудоустройства выпускников</li>
+                  <li>Охват дуальным обучением</li>
+                  <li>Заявки от работодателей</li>
+                  <li>Стартап-проекты студентов</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
+          <section className="bg-fc-navy-800 text-white p-4 rounded-xl shadow-lg">
+            <h4 className="font-bold mb-2 flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              Итоговый расчет
+            </h4>
+            <p className="text-sm opacity-90 leading-relaxed">
+              Общий балл колледжа — это сумма баллов по всем общеорганизационным показателям. 
+              Балл по специальности рассчитывается отдельно для каждой ОП на основе её специфических достижений. 
+              В рейтинге «По регионам» используется средневзвешенный балл всех колледжей области.
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 export default function CollegeAssessmentPage({ userRole }: { userRole?: string }) {
   const canImport = !userRole || ["superadmin", "admin"].includes(userRole);
-  const defaultTab: TabKey = canImport ? "import" : "ratings";
+  const defaultTab: TabKey = "ratings";
   const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
 
   const visibleTabs = TABS.filter(t => !t.roles || !userRole || t.roles.includes(userRole as any));
@@ -713,7 +793,9 @@ export default function CollegeAssessmentPage({ userRole }: { userRole?: string 
         {activeTab === "ratings"     && <RatingsTab />}
         {activeTab === "regions"     && <RegionsTab />}
         {activeTab === "specialties" && <SpecialtiesTab />}
+        {activeTab === "methodology" && <MethodologyTab />}
       </div>
+
     </div>
   );
 }

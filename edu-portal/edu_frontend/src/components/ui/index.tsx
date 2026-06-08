@@ -3,9 +3,15 @@
 // ❌ bg-red-50 / bg-emerald-50 / bg-amber-50 — NEVER
 // ✅ bg-danger/10 / bg-success/10 / bg-warning/10
 import React, { ReactNode } from "react";
+
+// Form inputs for react-hook-form: NumField, MoneyField, PercentField,
+// DateField, TextField, SelectField, SectionHeader.
+export * from "./FormFields";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle, Check, FileSearch, Loader2, RefreshCw, X,
 } from "lucide-react";
+import { staggerItem, modalOverlay, modalContent } from "@/lib/animations";
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -14,6 +20,30 @@ export function Loader({ label = "Загрузка…" }: { label?: string }) {
     <div className="flex items-center justify-center py-12 text-fc-steel-500">
       <Loader2 className="w-4 h-4 animate-spin mr-2" />
       <span className="text-sm">{label}</span>
+    </div>
+  );
+}
+
+// Branded pulsing skeleton — replaces raw spinners for data areas
+export function SkeletonCard({ lines = 2 }: { lines?: number }) {
+  return (
+    <div className="card p-4 space-y-3 overflow-hidden">
+      <div className="h-2.5 w-20 bg-fc-steel-100 rounded animate-pulse" />
+      <div className="h-8 w-14 bg-fc-navy-100 rounded animate-pulse" />
+      {Array.from({ length: Math.max(0, lines - 1) }).map((_, i) => (
+        <div key={i} className="h-2 bg-slate-100 rounded animate-pulse"
+             style={{ width: `${55 + i * 18}%` }} />
+      ))}
+    </div>
+  );
+}
+
+export function SkeletonGrid({ count = 4 }: { count?: number }) {
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      {Array.from({ length: count }).map((_, i) => (
+        <SkeletonCard key={i} lines={2} />
+      ))}
     </div>
   );
 }
@@ -72,7 +102,10 @@ export function StatCard({ label, value, hint, trend, accent, icon: Icon }: {
   };
 
   return (
-    <div className="card p-4 relative overflow-hidden hover:shadow-fc-md transition-shadow">
+    <motion.div
+      variants={staggerItem}
+      className="card p-4 relative overflow-hidden hover:shadow-fc-md transition-shadow"
+    >
       {accent && (
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBars[accent]}`} />
       )}
@@ -98,7 +131,7 @@ export function StatCard({ label, value, hint, trend, accent, icon: Icon }: {
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -145,21 +178,36 @@ export function Modal({ open, title, onClose, children, size = "md" }: {
   open: boolean; title: string; onClose: () => void;
   children: ReactNode; size?: "sm" | "md" | "lg";
 }) {
-  if (!open) return null;
   const widths = { sm: "max-w-sm", md: "max-w-lg", lg: "max-w-2xl" };
   return (
-    <div className="fixed inset-0 bg-fc-navy-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className={`bg-white rounded-xl ${widths[size]} w-full shadow-fc-xl max-h-[90vh] flex flex-col`}>
-        <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
-          <p className="font-display font-bold text-fc-navy-900">{title}</p>
-          <button onClick={onClose}
-            className="p-1 hover:bg-slate-100 rounded-md text-fc-steel-500 hover:text-fc-navy-900">
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-        <div className="p-5 overflow-y-auto">{children}</div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          variants={modalOverlay}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          className="fixed inset-0 bg-fc-navy-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4"
+        >
+          <motion.div
+            variants={modalContent}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className={`bg-white rounded-xl ${widths[size]} w-full shadow-fc-xl max-h-[90vh] flex flex-col`}
+          >
+            <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+              <p className="font-display font-bold text-fc-navy-900">{title}</p>
+              <button onClick={onClose}
+                className="p-1 hover:bg-slate-100 rounded-md text-fc-steel-500 hover:text-fc-navy-900">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="p-5 overflow-y-auto">{children}</div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 

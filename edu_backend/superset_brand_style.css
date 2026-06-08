@@ -1,0 +1,274 @@
+/*
+ * superset_brand_style.css
+ * ────────────────────────────────────────────────────────────────────────────
+ * Корпоративный стиль АО «Финансовый центр» для Apache Superset.
+ *
+ * ПРИМЕНЕНИЕ:
+ *   Dashboard → Edit dashboard → CSS → вставить весь файл → Save
+ *
+ * Совместимость: Apache Superset 4.x
+ * Шрифты: Inter (body) + Raleway (заголовки) — загружаются из Google Fonts.
+ * ────────────────────────────────────────────────────────────────────────────
+ */
+
+/* ── 1. Шрифты ─────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Raleway:wght@600;700;800;900&display=swap');
+
+:root {
+  /* Цветовые токены брендбука */
+  --fc-navy:   #19286d;
+  --fc-blue:   #0068b4;
+  --fc-cyan:   #00a6ca;
+  --fc-steel:  #296695;
+  --fc-purple: #801e82;
+  --fc-navy-50:  #eef0f7;
+  --fc-navy-100: #d4d8ea;
+  --fc-navy-900: #0a1339;
+  --fc-steel-100: #c7d6e5;
+  --fc-steel-500: #296695;
+  --success:   #0e8c5a;
+  --warning:   #c47200;
+  --danger:    #c1272d;
+}
+
+/* ── 2. Базовые шрифты ─────────────────────────────────────────────────────── */
+body,
+.superset-dnd-backcompat,
+.chart-container,
+.table-container,
+.dashboard,
+.dashboard-content {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  font-size: 13px;
+  color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Заголовки дашбордов и чартов — Raleway */
+.dashboard-title,
+.chart-label,
+.header-title,
+.header-controls,
+h1, h2, h3, h4,
+.editable-title,
+[class*="title"],
+[class*="Title"] {
+  font-family: 'Raleway', 'Inter', sans-serif !important;
+  font-weight: 700 !important;
+  color: var(--fc-navy) !important;
+  letter-spacing: -0.015em;
+}
+
+/* ── 3. Убираем стандартные Superset-тени и добавляем брендовые ─────────────── */
+.chart-slice,
+.slice_container,
+.dashboard-component-chart,
+.dragdroppable,
+.dashboard-component-tabs {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px -2px rgba(25, 40, 109, 0.08) !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  overflow: hidden;
+}
+
+/* Hover — тень усиливается */
+.chart-slice:hover,
+.slice_container:hover {
+  box-shadow: 0 8px 24px -8px rgba(25, 40, 109, 0.12) !important;
+  border-color: rgba(0, 104, 180, 0.2) !important;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* ── 4. Header / навигационная панель ──────────────────────────────────────── */
+.dragdroppable-tab,
+.ant-tabs-nav,
+.ant-tabs-nav-wrap {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn,
+.ant-tabs-tab-active {
+  color: var(--fc-navy) !important;
+  font-weight: 600 !important;
+}
+
+.ant-tabs-ink-bar {
+  background: var(--fc-blue) !important;
+  height: 2px !important;
+}
+
+/* Заголовок дашборда */
+.editable-title .title-container,
+.dashboard-title-container {
+  background: linear-gradient(135deg, var(--fc-navy) 0%, #243879 100%) !important;
+  color: #ffffff !important;
+  padding: 12px 20px !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+/* ── 5. Фильтры и кнопки ───────────────────────────────────────────────────── */
+/* Панель фильтров */
+.filter-bar,
+.filter-bar__main,
+.ant-select-selector,
+.ant-input,
+.ant-picker {
+  border-color: #cbd5e1 !important;
+  border-radius: 6px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+}
+
+.ant-select-selector:hover,
+.ant-input:hover,
+.ant-picker:hover {
+  border-color: var(--fc-blue) !important;
+}
+
+.ant-select-selector:focus-within,
+.ant-input:focus,
+.ant-picker-focused {
+  border-color: var(--fc-blue) !important;
+  box-shadow: 0 0 0 2px rgba(0, 104, 180, 0.15) !important;
+}
+
+/* Кнопки — основные */
+.ant-btn-primary,
+button[type="submit"],
+.filter-bar__apply-button {
+  background: var(--fc-navy) !important;
+  border-color: var(--fc-navy) !important;
+  border-radius: 6px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: 0.01em;
+  transition: background 0.15s ease !important;
+}
+
+.ant-btn-primary:hover {
+  background: #243879 !important;
+  border-color: #243879 !important;
+}
+
+/* Кнопки — вторичные */
+.ant-btn-default,
+.ant-btn-ghost {
+  border-color: var(--fc-steel) !important;
+  color: var(--fc-steel) !important;
+  border-radius: 6px !important;
+  font-weight: 500 !important;
+}
+
+.ant-btn-default:hover {
+  border-color: var(--fc-navy) !important;
+  color: var(--fc-navy) !important;
+}
+
+/* ── 6. Таблицы ─────────────────────────────────────────────────────────────── */
+.table-container table,
+.dt-table {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  font-variant-numeric: tabular-nums;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.table-container table thead th,
+.dt-table thead th {
+  background: var(--fc-navy-50) !important;
+  color: var(--fc-navy) !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.18em !important;
+  padding: 8px 12px !important;
+  border-bottom: 2px solid var(--fc-navy-100) !important;
+}
+
+.table-container table tbody tr:hover td,
+.dt-table tbody tr:hover td {
+  background: var(--fc-navy-50) !important;
+}
+
+.table-container table tbody tr td,
+.dt-table tbody tr td {
+  padding: 7px 12px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  color: #334155 !important;
+}
+
+/* ── 7. Big Numbers / KPI карточки ─────────────────────────────────────────── */
+.chart-container .big-number,
+.chart-container .bigNumberChart,
+[class*="bigNumber"] {
+  font-family: 'Raleway', sans-serif !important;
+  font-weight: 900 !important;
+  color: var(--fc-navy) !important;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+[class*="bigNumberDescription"],
+[class*="subheader"] {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.18em !important;
+  color: var(--fc-steel) !important;
+}
+
+/* ── 8. Tooltip ─────────────────────────────────────────────────────────────── */
+.tooltip,
+.recharts-tooltip-wrapper,
+.ant-tooltip-inner {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 8px 24px -8px rgba(25, 40, 109, 0.12) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  color: #1e293b !important;
+}
+
+/* ── 9. Легенда ─────────────────────────────────────────────────────────────── */
+.superset-legacy-chart-legend,
+[class*="Legend"] {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11px !important;
+  color: #64748b !important;
+}
+
+/* ── 10. Полоса загрузки ────────────────────────────────────────────────────── */
+.loading-spinner,
+.ant-spin-dot-item {
+  background-color: var(--fc-cyan) !important;
+}
+
+/* ── 11. Скроллбары ─────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fc-steel-100);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fc-steel);
+}
+
+/* ── 12. Dashboard background ──────────────────────────────────────────────── */
+.dashboard,
+.dragdroppable-content {
+  background: #f8fafc !important;
+}

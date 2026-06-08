@@ -1,13 +1,6 @@
 // src/components/layout/BrandHeader.tsx
-// ─────────────────────────────────────────────────────────────────────────────
-// Шапка бренда для использования в:
-//   • верхней части сайдбара (на тёмном navy фоне)
-//   • LoginPage (на тёмной брендинг-панели)
-//
-// Брендбук: вертикальная или горизонтальная композиция, охранное поле = 1 Q.
-// Здесь используется горизонтальная.
-// ─────────────────────────────────────────────────────────────────────────────
-
+import { motion } from "framer-motion";
+import { fadeInUp } from "@/lib/animations";
 import { LogoWithText } from "@/components/brand/Logo";
 
 interface BrandHeaderProps {
@@ -27,7 +20,12 @@ export default function BrandHeader({
   className = "",
 }: BrandHeaderProps) {
   return (
-    <div className={`px-4 py-4 ${dark ? "border-b border-white/10" : "border-b border-slate-200"} ${className}`}>
+    <motion.div
+      variants={fadeInUp}
+      initial="hidden"
+      animate="visible"
+      className={`px-4 py-4 ${dark ? "border-b border-white/10" : "border-b border-slate-200"} ${className}`}
+    >
       <LogoWithText variant={dark ? "white" : "navy"} lang={lang} />
 
       {showProductName && (
@@ -40,6 +38,6 @@ export default function BrandHeader({
           </p>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

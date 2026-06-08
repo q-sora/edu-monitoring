@@ -982,15 +982,30 @@ async def system_stats(
 ) -> dict:
     from app.models.contingent import ContingentSnapshot
     from app.models.science import ScienceActivity
+    from app.models.finance import FinanceRecord
+
+    PENDING_STATUSES = ("submitted", "under_review")
 
     org_count = (await db.execute(select(func.count()).select_from(Organization))).scalar_one()
 
+    # Total students across all approved contingent snapshots
+    total_students = (
+        await db.execute(
+            select(func.coalesce(func.sum(ContingentSnapshot.total_count), 0))
+            .where(
+                ContingentSnapshot.submission_status == "approved",
+                ContingentSnapshot.deleted_at.is_(None),
+            )
+        )
+    ).scalar_one()
+
+    # Records pending review (submitted + under_review)
     pending_science = (
         await db.execute(
             select(func.count())
             .select_from(ScienceActivity)
             .where(
-                ScienceActivity.submission_status == "submitted",
+                ScienceActivity.submission_status.in_(PENDING_STATUSES),
                 ScienceActivity.deleted_at.is_(None),
             )
         )
@@ -1001,7 +1016,7 @@ async def system_stats(
             select(func.count())
             .select_from(ContingentSnapshot)
             .where(
-                ContingentSnapshot.submission_status == "submitted",
+                ContingentSnapshot.submission_status.in_(PENDING_STATUSES),
                 ContingentSnapshot.deleted_at.is_(None),
             )
         )
@@ -1012,11 +1027,12 @@ async def system_stats(
     redis_info = await redis.info("server")
 
     return {
-        "organizations":    org_count,
-        "pending_science":  pending_science,
+        "organizations":      org_count,
+        "total_students":     int(total_students),
+        "pending_science":    pending_science,
         "pending_contingent": pending_contingent,
-        "redis_version":    redis_info.get("redis_version"),
-        "uptime_seconds":   redis_info.get("uptime_in_seconds"),
+        "redis_version":      redis_info.get("redis_version"),
+        "uptime_seconds":     redis_info.get("uptime_in_seconds"),
     }
 
 

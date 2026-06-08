@@ -11,6 +11,8 @@
 import React, {
   useState, useEffect, useCallback, useRef, useMemo,
 } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { staggerContainer, staggerItem, slideOver } from "@/lib/animations";
 import {
   AlertTriangle, TrendingDown, TrendingUp, Info,
   ChevronRight, X, RefreshCw, Loader2, BarChart3,
@@ -717,14 +719,22 @@ export default function AnomaliesPage() {
                 </p>
               </div>
             ) : (
-              items.map(item => (
-                <AnomalyCard
-                  key={item.id}
-                  item={item}
-                  selected={selected?.id === item.id}
-                  onClick={() => setSelected(prev => prev?.id === item.id ? null : item)}
-                />
-              ))
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="visible"
+                className="space-y-2.5"
+              >
+                {items.map(item => (
+                  <motion.div key={item.id} variants={staggerItem}>
+                    <AnomalyCard
+                      item={item}
+                      selected={selected?.id === item.id}
+                      onClick={() => setSelected(prev => prev?.id === item.id ? null : item)}
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
             )}
           </div>
 
@@ -747,15 +757,23 @@ export default function AnomaliesPage() {
         </div>
 
         {/* ── Slide-over panel ──────────────────────────────────────────────── */}
-        {selected && (
-          <div className="w-[420px] flex-none border-l border-slate-100 bg-white shadow-xl overflow-hidden flex flex-col">
-            <DetailPanel
-              item={selected}
-              onClose={() => setSelected(null)}
-              onStatusChange={handleStatusChange}
-            />
-          </div>
-        )}
+        <AnimatePresence>
+          {selected && (
+            <motion.div
+              variants={slideOver}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="w-[420px] flex-none border-l border-slate-100 bg-white shadow-xl overflow-hidden flex flex-col"
+            >
+              <DetailPanel
+                item={selected}
+                onClose={() => setSelected(null)}
+                onStatusChange={handleStatusChange}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

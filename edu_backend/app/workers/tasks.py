@@ -140,6 +140,14 @@ async def _sync_from_external_async(
     if org_id:
         params["org_id"] = org_id
 
+    if not config.get("api_key"):
+        logger.warning("Sync source %s has no API key configured — skipping", source)
+        return {"skipped": f"{source}: API key not configured"}
+
+    if not config.get("base_url"):
+        logger.warning("Sync source %s has no base_url configured — skipping", source)
+        return {"skipped": f"{source}: base_url not configured"}
+
     logger.info("Starting sync: source=%s full=%s org=%s", source, full_sync, org_id)
 
     # ── 1. Fetch from external API ────────────────────────────────────────

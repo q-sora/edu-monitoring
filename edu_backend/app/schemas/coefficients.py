@@ -24,6 +24,8 @@ class CoefficientDefinitionRead(BaseModel):
     norm_min: Optional[Decimal] = None
     norm_max: Optional[Decimal] = None
     norm_target: Optional[Decimal] = None
+    numerator_catalog_id: Optional[int] = None
+    denominator_catalog_id: Optional[int] = None
     is_active: bool = True
 
 

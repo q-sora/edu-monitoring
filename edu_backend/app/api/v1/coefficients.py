@@ -127,6 +127,21 @@ async def calculate_scores(
     return results
 
 
+@router.post(
+    "/organisations/{org_id}/coefficients/{year}/sync",
+    status_code=status.HTTP_200_OK,
+)
+async def sync_coefficients(
+    org_id: UUID,
+    year: int,
+    db: DBSession = None,
+    token: AuthenticatedUser = None,
+):
+    """Синхронизировать коэффициенты из центрального каталога данных (education_data)."""
+    count = await crud.auto_calculate_records(db, org_id=org_id, year=year, user_id=token.sub)
+    return {"message": f"Синхронизировано {count} коэффициентов"}
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Ratings / Comparison
 # ─────────────────────────────────────────────────────────────────────────────

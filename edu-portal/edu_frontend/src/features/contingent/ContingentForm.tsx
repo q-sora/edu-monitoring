@@ -15,6 +15,13 @@ import { z } from "zod";
 import { Plus, Trash2, Save, Send, Loader2, AlertTriangle, Users } from "lucide-react";
 import client from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
+import {
+  NumField,
+  PercentField,
+  DateField,
+  SectionHeader,
+  StatusBadge,
+} from "@/components/ui";
 
 // ═════════════════════════════════════════════════════════════════════════════
 // ZOD SCHEMA
@@ -60,90 +67,6 @@ const contingentSchema = z.object({
 });
 
 type ContingentFormData = z.infer<typeof contingentSchema>;
-
-// ═════════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ═════════════════════════════════════════════════════════════════════════════
-
-function NumField({ name, label, hint }: { name: string; label: string; hint?: string }) {
-  const { register, formState: { errors } } = useFormContext<ContingentFormData>();
-  const err = (errors as any)[name]?.message as string | undefined;
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="label-eyebrow">{label}</label>
-      {hint && <p className="text-xs text-fc-steel-400 -mt-0.5">{hint}</p>}
-      <input
-        type="number"
-        min={0}
-        step={1}
-        className={`input ${err ? "border-danger" : ""}`}
-        {...register(name as any)}
-      />
-      {err && <p className="text-xs text-danger">{err}</p>}
-    </div>
-  );
-}
-
-function PercentField({ name, label }: { name: string; label: string }) {
-  const { register, formState: { errors } } = useFormContext<ContingentFormData>();
-  const err = (errors as any)[name]?.message as string | undefined;
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="label-eyebrow">{label}</label>
-      <div className="relative">
-        <input
-          type="number"
-          min={0}
-          max={100}
-          step={0.01}
-          className={`input pr-7 ${err ? "border-danger" : ""}`}
-          {...register(name as any)}
-        />
-        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-fc-steel-400 text-sm">%</span>
-      </div>
-      {err && <p className="text-xs text-danger">{err}</p>}
-    </div>
-  );
-}
-
-function DateField({ name, label }: { name: string; label: string }) {
-  const { register, formState: { errors } } = useFormContext<ContingentFormData>();
-  const err = (errors as any)[name]?.message as string | undefined;
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="label-eyebrow">{label}</label>
-      <input
-        type="date"
-        className={`input ${err ? "border-danger" : ""}`}
-        {...register(name as any)}
-      />
-      {err && <p className="text-xs text-danger">{err}</p>}
-    </div>
-  );
-}
-
-function SectionHeader({ title }: { title: string }) {
-  return (
-    <div className="col-span-full border-b border-slate-100 pb-1 mb-1">
-      <span className="label-eyebrow text-fc-navy-700">{title}</span>
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    draft:        "pill bg-slate-100 text-slate-600",
-    submitted:    "pill bg-fc-blue-100 text-fc-blue-700",
-    under_review: "pill bg-amber-100 text-amber-700",
-    approved:     "pill bg-success/10 text-success",
-    rejected:     "pill bg-danger/10 text-danger",
-  };
-  const labels: Record<string, string> = {
-    draft: "Черновик", submitted: "На согласовании",
-    under_review: "На проверке", approved: "Утверждено", rejected: "Отклонено",
-  };
-  return <span className={map[status] ?? "pill bg-slate-100 text-slate-600"}>{labels[status] ?? status}</span>;
-}
 
 // ═════════════════════════════════════════════════════════════════════════════
 // TABS
@@ -372,7 +295,7 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
-            <StatusPill status={status} />
+            <StatusBadge status={status} />
             {lastSaved && (
               <span className="text-xs text-fc-steel-400">
                 Сохранено {lastSaved.toLocaleTimeString()}

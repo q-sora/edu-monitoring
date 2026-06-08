@@ -26,7 +26,7 @@ async def import_college_assessment(
         raise HTTPException(422, "Поддерживается только .xlsx / .xls")
     contents = await file.read()
     result = await parse_and_import_college_assessment(
-        db, contents, file.filename, period_year, str(user.id)
+        db, contents, file.filename, period_year, user.sub
     )
     return {"filename": file.filename, **result}
 

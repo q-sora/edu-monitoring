@@ -23,13 +23,15 @@ import {
 } from "@/portal";
 import DataCatalogPage from "@/features/catalog/DataCatalogPage";
 import UniversalImportPage from "@/features/import/UniversalImportPage";
+import SchoolRatingForm from "@/features/schools/SchoolRatingForm";
+import EduLevelPage from "@/features/edu-level/EduLevelPage";
 
 function IndexRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
   const location = useLocation();
   if (isLoading) return null;
   if (!isAuthenticated) return <Navigate to="/login" state={{ from: location }} replace />;
-  if (user?.role === "data_entry") return <Navigate to="/data/contingent" replace />;
+  if (user?.role === "data_entry") return <Navigate to="/edu/school" replace />;
   if (user?.role === "management") return <Navigate to="/transparency" replace />;
   return <Navigate to="/dashboard" replace />;
 }
@@ -52,13 +54,24 @@ export default function App() {
                 <Route path="/coverage" element={<CoveragePage />} />
               </Route>
 
+              {/* Новые маршруты уровней образования */}
+              <Route path="/edu/preschool"       element={<EduLevelPage level="do"    />} />
+              <Route path="/edu/school"          element={<EduLevelPage level="so"    />} />
+              <Route path="/edu/extracurricular" element={<EduLevelPage level="dopo"  />} />
+              <Route path="/edu/college"         element={<EduLevelPage level="tippo" />} />
+              <Route path="/edu/university"      element={<EduLevelPage level="vipo"  />} />
+              <Route path="/edu/special"         element={<EduLevelPage level="gons"  />} />
+
+              {/* Алиасы старых маршрутов */}
+              <Route path="/data/contingent" element={<Navigate to="/edu/school" replace />} />
+              <Route path="/data/finance"    element={<Navigate to="/edu/school" replace />} />
+              <Route path="/data/science"    element={<Navigate to="/edu/university" replace />} />
+              <Route path="/data/graduates"  element={<Navigate to="/edu/university" replace />} />
+              <Route path="/data/education"  element={<Navigate to="/edu/school" replace />} />
+              <Route path="/data/history"    element={<Navigate to="/edu/school" replace />} />
+
               <Route element={<RequirePermission permission="data.submit" />}>
-                <Route path="/data/contingent"    element={<ContingentPage />} />
-                <Route path="/data/finance"       element={<FinancePage />} />
-                <Route path="/data/science"       element={<SciencePage />} />
-                <Route path="/data/graduates"     element={<GraduatesPage />} />
-                <Route path="/data/education"     element={<EducationPage />} />
-                <Route path="/data/history"       element={<HistoryPage />} />
+                <Route path="/data/school-rating" element={<SchoolRatingForm />} />
               </Route>
 
               {/* Коэффициенты — Аналитика: admin/management видят рейтинг, data_entry вводят данные */}

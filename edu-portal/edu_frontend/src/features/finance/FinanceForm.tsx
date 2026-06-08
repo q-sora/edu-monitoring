@@ -23,6 +23,10 @@ import {
 } from "lucide-react";
 import client from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
+import {
+  NumField, MoneyField, PercentField, DateField, TextField, SelectField,
+  SectionHeader, StatusBadge, ErrorBox,
+} from "@/components/ui";
 
 // ═════════════════════════════════════════════════════════════════════════════
 // ZOD SCHEMA
@@ -235,7 +239,7 @@ export default function FinanceForm({ recordId, orgId: propOrgId }: { recordId?:
         {/* Status bar */}
         <div className="card p-4 mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <StatusPill status={status} />
+            <StatusBadge status={status} />
             {lastSaved && (
               <span className="text-xs text-fc-steel-500">
                 Сохранено: {lastSaved.toLocaleTimeString("ru-RU")}
@@ -261,9 +265,8 @@ export default function FinanceForm({ recordId, orgId: propOrgId }: { recordId?:
         </div>
 
         {error && (
-          <div className="card p-3 mb-4 bg-red-50 border-red-200 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="mb-4">
+            <ErrorBox message={error} />
           </div>
         )}
 
@@ -655,99 +658,8 @@ function AuditTab() {
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
-// HELPER COMPONENTS
+// LOCAL HELPER — sum/total reconciliation (form-specific, не выносим в ui)
 // ═════════════════════════════════════════════════════════════════════════════
-
-function NumField({ name, label, placeholder }: { name: any; label: string; placeholder?: string }) {
-  const { register } = useFormContext<FinanceForm>();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="label-eyebrow">{label}</span>
-      <input type="number" {...register(name)} placeholder={placeholder ?? "0"} className="input" />
-    </label>
-  );
-}
-
-function MoneyField({
-  name, label, hint, highlight,
-}: { name: any; label: string; hint?: string; highlight?: boolean }) {
-  const { register } = useFormContext<FinanceForm>();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className={`label-eyebrow ${highlight ? "!text-fc-navy-900 font-black" : ""}`}>
-        {label}
-      </span>
-      <div className="relative">
-        <input type="number" step="0.01" {...register(name)} placeholder="0"
-          className={`input pr-12 text-right tabular-nums ${highlight ? "border-fc-navy-300 bg-fc-navy-50/30 font-bold" : ""}`} />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fc-steel-400 pointer-events-none">₸</span>
-      </div>
-      {hint && <span className="text-[11px] text-fc-steel-500 mt-0.5">{hint}</span>}
-    </label>
-  );
-}
-
-function PercentField({
-  name, label, hint, highlight,
-}: { name: any; label: string; hint?: string; highlight?: boolean }) {
-  const { register } = useFormContext<FinanceForm>();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className={`label-eyebrow ${highlight ? "!text-fc-navy-900 font-black" : ""}`}>{label}</span>
-      <div className="relative">
-        <input type="number" step="0.01" {...register(name)} placeholder="0"
-          className={`input pr-10 text-right tabular-nums ${highlight ? "border-fc-navy-300 bg-fc-navy-50/30 font-bold" : ""}`} />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fc-steel-400 pointer-events-none">%</span>
-      </div>
-      {hint && <span className="text-[11px] text-fc-steel-500 mt-0.5">{hint}</span>}
-    </label>
-  );
-}
-
-function TextField({ name, label, hint }: { name: any; label: string; hint?: string }) {
-  const { register } = useFormContext<FinanceForm>();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="label-eyebrow">{label}</span>
-      <input {...register(name)} className="input" />
-      {hint && <span className="text-[11px] text-fc-steel-500 mt-0.5">{hint}</span>}
-    </label>
-  );
-}
-
-function DateField({ name, label }: { name: any; label: string }) {
-  const { register } = useFormContext<FinanceForm>();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="label-eyebrow">{label}</span>
-      <input type="date" {...register(name)} className="input" />
-    </label>
-  );
-}
-
-function SelectField({
-  name, label, options,
-}: { name: any; label: string; options: {value: string; label: string}[] }) {
-  const { register } = useFormContext<FinanceForm>();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="label-eyebrow">{label}</span>
-      <select {...register(name)} className="input">
-        <option value="">—</option>
-        {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-      </select>
-    </label>
-  );
-}
-
-function SectionHeader({ title, hint }: { title: string; hint?: string }) {
-  return (
-    <div className="mb-4 pb-3 border-b border-slate-100">
-      <p className="font-display font-bold text-fc-navy-900">{title}</p>
-      {hint && <p className="text-xs text-fc-steel-500 mt-1">{hint}</p>}
-    </div>
-  );
-}
 
 function SectionTotalCheck({
   title, totalField, sumFields,
@@ -763,8 +675,8 @@ function SectionTotalCheck({
   return (
     <div className={`mt-5 rounded-md p-3 text-xs flex items-center justify-between border ${
       mismatch
-        ? "bg-amber-50 border-amber-200 text-warning"
-        : "bg-emerald-50 border-emerald-200 text-success"
+        ? "bg-warning/10 border-warning/20 text-warning"
+        : "bg-success/10 border-success/20 text-success"
     }`}>
       <span className="flex items-center gap-2">
         {mismatch ? <AlertTriangle className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />}
@@ -777,21 +689,5 @@ function SectionTotalCheck({
         </span>
       )}
     </div>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { bg: string; text: string; label: string }> = {
-    draft:        { bg: "bg-slate-100",  text: "text-slate-700",   label: "Черновик" },
-    submitted:    { bg: "bg-fc-blue-50", text: "text-fc-blue-700", label: "Отправлено" },
-    under_review: { bg: "bg-amber-50",   text: "text-warning",     label: "На рассмотрении" },
-    approved:     { bg: "bg-emerald-50", text: "text-success",     label: "✓ Одобрено" },
-    rejected:     { bg: "bg-red-50",     text: "text-danger",      label: "✗ Отклонено" },
-  };
-  const m = map[status] ?? { bg: "bg-slate-100", text: "text-slate-700", label: status };
-  return (
-    <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold ${m.bg} ${m.text}`}>
-      {m.label}
-    </span>
   );
 }

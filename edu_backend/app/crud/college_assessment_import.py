@@ -93,6 +93,10 @@ async def parse_and_import_college_assessment(
     ))
     name_to_org_id = {r.name_ru.strip().lower(): str(r.id) for r in res.fetchall()}
 
+    # Fetch mapping for unified data catalog
+    res_mapping = await db.execute(text("SELECT ca_column, catalog_field_id FROM college_assessment_field_mapping"))
+    ca_mapping = {r.ca_column: r.catalog_field_id for r in res_mapping.fetchall()}
+
     stats = dict(
         colleges_inserted=0, colleges_updated=0,
         specialties_inserted=0, specialties_updated=0,
@@ -227,6 +231,37 @@ async def parse_and_import_college_assessment(
                     RETURNING id
                 """), college_data)
                 current_college_id = result.scalar_one()
+
+                # ── SYNC WITH UNIFIED DATA CATALOG ───────────────────────────
+                if org_id and ca_mapping:
+                    for col, field_id in ca_mapping.items():
+                        val = college_data.get(col)
+                        if val is None:
+                            continue
+                        
+                        # Convert bool to 1/0 for numeric storage if needed
+                        if isinstance(val, bool):
+                            val = 1.0 if val else 0.0
+
+                        await db.execute(text("""
+                            INSERT INTO education_data (
+                                org_id, catalog_field_id, period_year, value_numeric, 
+                                imported_from, source_file, created_by, updated_by
+                            ) VALUES (
+                                :org_id, :field_id, :year, :val, 
+                                'college_assessment_sync', :src, :uid, :uid
+                            )
+                            ON CONFLICT (org_id, catalog_field_id, period_year, period_month)
+                            DO UPDATE SET
+                                value_numeric = EXCLUDED.value_numeric,
+                                updated_at = NOW(),
+                                version = education_data.version + 1
+                        """), {
+                            "org_id": org_id, "field_id": field_id, 
+                            "year": period_year, "val": val, 
+                            "src": filename, "uid": user_id
+                        })
+
                 await db.execute(text(f"RELEASE SAVEPOINT {sp}"))
                 stats["colleges_inserted"] += 1
             except Exception as e:

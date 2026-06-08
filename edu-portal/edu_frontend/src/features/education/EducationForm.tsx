@@ -7,9 +7,12 @@ import { useEffect, useState, useCallback } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Save, Send, Loader2, AlertTriangle } from "lucide-react";
+import { Save, Send, Loader2 } from "lucide-react";
 import client from "@/api/client";
 import { useAuth } from "@/auth/AuthContext";
+import {
+  NumField, PercentField, SectionHeader, Field, StatusBadge, ErrorBox,
+} from "@/components/ui";
 
 const educationSchema = z.object({
   period_year: z.coerce.number().int().min(2015).max(2035),
@@ -153,9 +156,8 @@ export default function EducationForm({ recordId, orgId: propOrgId }: { recordId
           onSubmit={submitForApproval} canSubmit={!!recordId} readOnly={isReadOnly} />
 
         {error && (
-          <div className="card p-3 mb-4 bg-red-50 border-red-200 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="mb-4">
+            <ErrorBox message={error} />
           </div>
         )}
 
@@ -315,13 +317,13 @@ export default function EducationForm({ recordId, orgId: propOrgId }: { recordId
   );
 }
 
-// ─── Helpers (общие) ─────────────────────────────────────────────────────
+// ─── Local — form chrome + LMS field ──────────────────────────────────────
 
 function FormHeader({ status, lastSaved, saving, submitting, onSubmit, canSubmit, readOnly }: any) {
   return (
     <div className="card p-4 mb-4 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        <StatusPill status={status} />
+        <StatusBadge status={status} />
         {lastSaved && <span className="text-xs text-fc-steel-500">Сохранено: {lastSaved.toLocaleTimeString("ru-RU")}</span>}
       </div>
       {!readOnly && (
@@ -340,42 +342,6 @@ function FormHeader({ status, lastSaved, saving, submitting, onSubmit, canSubmit
   );
 }
 
-function NumField({ name, label, hint, highlight, step }: any) {
-  const { register } = useFormContext();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className={`label-eyebrow ${highlight ? "!text-fc-navy-900 font-black" : ""}`}>{label}</span>
-      <input type="number" step={step ?? "1"} {...register(name)} placeholder="0"
-        className={`input text-right tabular-nums ${highlight ? "border-fc-navy-300 bg-fc-navy-50/30 font-bold" : ""}`} />
-      {hint && <span className="text-[11px] text-fc-steel-500 mt-0.5">{hint}</span>}
-    </label>
-  );
-}
-
-function PercentField({ name, label, hint, highlight }: any) {
-  const { register } = useFormContext();
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className={`label-eyebrow ${highlight ? "!text-fc-navy-900 font-black" : ""}`}>{label}</span>
-      <div className="relative">
-        <input type="number" step="0.01" {...register(name)} placeholder="0"
-          className={`input pr-10 text-right tabular-nums ${highlight ? "border-fc-navy-300 bg-fc-navy-50/30 font-bold" : ""}`} />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-fc-steel-400 pointer-events-none">%</span>
-      </div>
-      {hint && <span className="text-[11px] text-fc-steel-500 mt-0.5">{hint}</span>}
-    </label>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="label-eyebrow">{label}</span>
-      {children}
-    </label>
-  );
-}
-
 function LmsPlatformField() {
   const { register } = useFormContext();
   return (
@@ -384,25 +350,4 @@ function LmsPlatformField() {
         placeholder="Moodle / Canvas / Univer / другая" />
     </Field>
   );
-}
-
-function SectionHeader({ title, hint }: { title: string; hint?: string }) {
-  return (
-    <div className="my-5 first:mt-0 pb-3 border-b border-slate-100">
-      <p className="font-display font-bold text-fc-navy-900">{title}</p>
-      {hint && <p className="text-xs text-fc-steel-500 mt-1">{hint}</p>}
-    </div>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const map: Record<string, { bg: string; text: string; label: string }> = {
-    draft:        { bg: "bg-slate-100",  text: "text-slate-700",   label: "Черновик" },
-    submitted:    { bg: "bg-fc-blue-50", text: "text-fc-blue-700", label: "Отправлено" },
-    under_review: { bg: "bg-amber-50",   text: "text-warning",     label: "На рассмотрении" },
-    approved:     { bg: "bg-emerald-50", text: "text-success",     label: "✓ Одобрено" },
-    rejected:     { bg: "bg-red-50",     text: "text-danger",      label: "✗ Отклонено" },
-  };
-  const m = map[status] ?? { bg: "bg-slate-100", text: "text-slate-700", label: status };
-  return <span className={`inline-flex px-2.5 py-1 rounded-md text-xs font-bold ${m.bg} ${m.text}`}>{m.label}</span>;
 }

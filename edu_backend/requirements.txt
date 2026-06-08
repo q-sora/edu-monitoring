@@ -26,6 +26,11 @@ celery[redis]==5.4.0           # background task queue
 # ── HTTP client (for external integrations: НОБД, ЕПВО, Gemini) ──────────────
 httpx==0.27.0
 
+# ── Data processing (Excel import / catalog parsing) ──────────────────────────
+pandas==2.2.2
+openpyxl==3.1.3           # pandas Excel backend (.xlsx)
+rapidfuzz>=3.0.0          # fuzzy column matching for universal import
+
 # ── Observability ─────────────────────────────────────────────────────────────
 structlog==24.2.0              # structured JSON logging
 opentelemetry-sdk==1.25.0      # distributed tracing (Jaeger / Tempo)

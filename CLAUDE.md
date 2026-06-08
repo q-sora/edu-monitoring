@@ -65,12 +65,22 @@
 │       │       ├── router_factory.py   # Generic CRUD router factory
 │       │       ├── science.py          # Science-specific endpoints
 │       │       ├── coefficients.py     # Coefficients endpoints
-│       │       └── integrations.py     # External data sync
+│       │       ├── integrations.py     # External data sync
+│       │       ├── data_catalog.py     # Каталог данных (levels/sections/fields/import)
+│       │       └── universal_import.py # Универсальный импорт xlsx
+│       ├── crud/
+│       │   ├── data_catalog_import.py  # Парсинг каталога .xlsx → data_catalog
+│       │   └── universal_import.py     # Универсальный импорт данных
 │       ├── services/
 │       │   ├── ai_insights.py          # Gemini AI analytics (InsightRequest/Response)
 │       │   ├── ai_synthesizer.py       # PresentationGenerator (двухфазная генерация)
 │       │   ├── analytics_engine.py     # DataAnalyzer (MAD, rankings, anomalies)
 │       │   └── submission.py           # Workflow helpers
+│       ├── migrations/versions/
+│       │   ├── 009_data_catalog.sql            # data_catalog таблица
+│       │   ├── 010_education_data.sql           # EAV education_data
+│       │   ├── 011_catalog_dimension_tables.sql # dimension + mapping таблицы
+│       │   └── 012_catalog_fields_alter.sql     # 12 section-таблиц + 538 колонок
 │       └── workers/
 │           ├── celery_app.py           # Celery config + beat schedule
 │           └── tasks.py               # Все Celery tasks
@@ -82,7 +92,12 @@
         ├── index.css                   # Кастомные utility-классы
         ├── api/{client.ts,auth.ts}
         ├── auth/{AuthContext,LoginPage,ProtectedRoute,tokenStore,types}
-        ├── components/{brand,layout}/
+        ├── hooks/useApi.ts             # useApi, mutate, useRegions
+        ├── lib/animations.ts           # Framer Motion variants
+        ├── components/
+        │   ├── brand/Logo.tsx
+        │   ├── layout/BrandHeader.tsx
+        │   └── ui/{index.tsx,FormFields.tsx}
         └── features/
             ├── contingent/ContingentForm.tsx   # ← эталон формы
             ├── finance/FinanceForm.tsx
@@ -90,14 +105,25 @@
             ├── graduates/GraduatesForm.tsx
             ├── education/EducationForm.tsx
             ├── transparency/RegionalAnalytics.tsx
-            └── coefficients/CoefficientsPage.tsx
+            ├── coefficients/CoefficientsPage.tsx
+            ├── anomalies/AnomaliesPage.tsx
+            ├── catalog/DataCatalogPage.tsx
+            ├── import/UniversalImportPage.tsx
+            ├── analytics/SupersetDashboard.tsx
+            ├── dashboard/DashboardPage.tsx
+            └── presentations/PresentationEngine.tsx
 ```
 
 ---
 
 ## База данных
 
-### Основные data-таблицы (все с `FullAuditMixin`)
+### Текущее состояние (после полной очистки тестовых данных)
+
+БД содержит только **справочные данные** — доменные таблицы пустые и готовы к
+заполнению реальными данными организаций.
+
+### Domain data-таблицы (ORM-модели + FullAuditMixin)
 
 | Таблица | Модель | Ключевые поля |
 |---|---|---|
@@ -111,6 +137,39 @@
 > Если нужна колонка в raw SQL — проверяй через `\d имя_таблицы` прежде чем
 > решить что её нет. ORM-модель — неполная.
 
+### Каталог данных (миграции 009–012)
+
+Расширенный каталог — **2897 полей** по 7 уровням образования, 100% покрыты.
+
+| Таблица | Строк | Назначение |
+|---|---|---|
+| `data_catalog` | 2897 | Справочник всех полей (level, section, field_slug, data_type_code) |
+| `catalog_field_mapping` | 2897 | Маппинг поля → хранилище (storage_type, db_table, db_column) |
+
+`storage_type` значения: `'column'` (721) — скаляр в домейн-таблице, `'dim_table'` (2176) — нормализованная dimension-таблица.
+
+### Dimension-таблицы (нормализованные, section-level)
+
+Созданы в миграции 012. Каждая имеет `org_id`, `education_level`, `period_year`, RLS.
+
+| Таблица | Разделы каталога | Уровни образования |
+|---|---|---|
+| `edu_general_info` | general | все |
+| `edu_infrastructure` | infrastructure | do, dopo, so, tippo, vipo |
+| `edu_education_process` | education_process | все |
+| `edu_graduates_ext` | graduates (доп. поля) | so, tippo, vipo, do, dopo |
+| `edu_dormitory` | dormitory_general, dormitory_monitoring, goz_dormitory_stages | obsh |
+| `edu_groups` | groups | do, dopo |
+| `edu_equipment` | equipment | все |
+| `edu_digitalization` | digitalization | все |
+| `edu_medical` | medical | все |
+| `edu_international` | international | tippo, vipo |
+| `edu_science_ext` | science (доп. поля) | vipo |
+| `edu_fraud` | fraud | все |
+| `enrollment_dim` | contingent (ВиПО) | vipo |
+| `student_contingent` | contingent (прочие) | do, dopo, so, tippo, gons |
+| `staff_by_category` | staff | все |
+
 ### `FullAuditMixin` поля (все data-таблицы)
 `created_at`, `updated_at`, `created_by`, `updated_by`, `version`, `deleted_at`, `deleted_by`
 
@@ -120,9 +179,16 @@
 ### AI-таблицы
 - `evaluation_reports` — AI презентации (`status`: pending/generating/done/failed, `slides_json` JSONB)
 - `ai_insight_history` — история AI инсайт запросов (по `requested_by`)
+- `anomaly_reports` — результаты AI-сканирования аномалий
 
-### Справочники
-`regions` (20), `org_types` (8), `organizations` (реальные организации KZ)
+### Справочники (НЕ трогать без причины)
+`regions` (20), `org_types` (7), `data_sources` (17), `coefficient_definitions` (173),
+`update_frequencies` (10), `languages` (6), `ownership_forms` (6), `privilege_categories` (7),
+`field_registry` (283 — legacy seed из init SQL)
+
+### Организации
+Таблица `organizations` **пуста** — тестовые данные очищены. Готова к загрузке реальных
+организаций.
 
 ---
 
@@ -135,15 +201,27 @@
 - `GET /admin/references/regions` — регионы
 - `GET /admin/references/data-sources` — источники данных
 
-### Domain CRUD (`/data/{domain}`)
-Генерируются `router_factory.py`. Для каждого из: `contingent`, `finance`, `graduates`, `education`:
-- `GET /data/{domain}/` — список записей
-- `POST /data/{domain}/` — создать
-- `GET /data/{domain}/{id}` — получить
-- `PATCH /data/{domain}/{id}` — обновить
-- `POST /data/{domain}/{id}/submit` — отправить на согласование
-- `POST /data/{domain}/{id}/approve` — согласовать (admin+)
-- `POST /data/{domain}/{id}/reject` — отклонить (admin+)
+### Domain CRUD (`/organisations/{org_id}/{domain}`)
+Генерируются `router_factory.py`. Для каждого из: `contingent`, `finance`, `graduates`,
+`education`, `science-activity`:
+- `GET /organisations/{org_id}/{domain}` — список записей
+- `POST /organisations/{org_id}/{domain}` — создать
+- `GET /organisations/{org_id}/{domain}/{id}` — получить
+- `PATCH /organisations/{org_id}/{domain}/{id}` — обновить
+- `POST /organisations/{org_id}/{domain}/{id}/status` — сменить статус (submit/approve/reject)
+
+> ⚠ **Путь именно `/organisations/` (британское написание)** — не `/organizations/`.
+
+### Каталог данных (`/data-catalog`)
+- `GET /data-catalog/levels` — уровни образования (7 штук)
+- `GET /data-catalog/sections/{education_level}` — разделы уровня
+- `GET /data-catalog/fields/{education_level}/{section_slug}` — поля раздела
+- `GET /data-catalog/stats` — сводка (total_fields: 2897)
+- `POST /data-catalog/import` — импорт .xlsx (superadmin only)
+
+### Универсальный импорт (`/universal-import`)
+- `POST /universal-import/preview` — предпросмотр файла
+- `POST /universal-import/execute` — выполнить импорт
 
 ### AI Insights (`/admin/insights`)
 - `POST /admin/insights` — генерация (кэш 5 мин в Redis, сохраняет в `ai_insight_history`)
@@ -155,16 +233,18 @@
 - `GET /admin/presentations/` — список всех отчётов
 
 ### Transparency
-- `GET /admin/transparency` — данные для публичной прозрачности (org + финансы + выпускники)
+- `GET /admin/transparency` — данные для публичной прозрачности
 - `GET /admin/regional-stats` — региональная статистика
 
 ### Admin
-- `GET /admin/organizations` — список организаций
-- `POST /admin/organizations` — создать организацию
+- `GET /admin/organisations` — список организаций (**с `s` на конце**)
+- `POST /admin/organisations` — создать организацию
+- `GET /admin/stats` — статистика системы (**не** `/system-stats`)
 - `GET /admin/pending-submissions` — ожидающие согласования
 - `GET /admin/audit-log` — аудит лог
 - `GET /admin/api-keys` — API ключи (superadmin)
-- `GET /admin/system-stats` — статистика системы
+- `GET /admin/anomalies` — точки внимания
+- `GET /admin/coverage` — покрытие данных по организациям
 
 ---
 
@@ -241,38 +321,48 @@ docker compose up -d --force-recreate celery_worker
 
 **Сессии**: `DBSession` = write с RLS, `ReadDBSession` = read-only replica.
 
-**Superadmin UUID**: `d7c06c5b-67db-4ea0-b2ce-136da6201546`
-Учётные данные хранятся в `.env.test` (gitignored).
+**Superadmin**: `knursagitov@gmail.com` / `Admin2024secure!`  
+**UUID**: `5222215e-4fa6-4f9b-b3d2-8d783e5993da`
+
+Если аккаунт заблокирован (failed_login_attempts ≥ 5):
+```sql
+UPDATE users SET failed_login_attempts=0, locked_until=NULL WHERE email='knursagitov@gmail.com';
+```
 
 ---
 
 ## Frontend — Маршруты
 
 ```
-/login                → LoginPage
-/dashboard            → DashboardPage
-/transparency         → TransparencyPage        (all roles)
-/data/contingent      → ContingentPage          (data.submit)
-/data/finance         → FinancePage             (data.submit)
-/data/science         → SciencePage             (data.submit)
-/data/graduates       → GraduatesPage           (data.submit)
-/data/education       → EducationPage           (data.submit)
-/data/history         → HistoryPage             (data.submit)
-/data/coefficients    → CoefficientsPage        (all roles)
-/reports              → AIReportsPage           (ai_insights.view)
-/presentations        → PresentationsPage       (ai_insights.view)
-/coverage             → CoveragePage            (admin+)
-/dashboards           → SupersetDashboardsPage  (all auth)
-/admin/organisations  → OrganisationsPage       (admin+)
-/admin/users          → UsersPage               (admin+)
-/admin/approvals      → ApprovalsPage           (admin+)
-/admin/integrations   → IntegrationsPage        (admin+)
-/admin/audit          → AuditLogPage            (admin+)
-/admin/api-keys       → ApiKeysPage             (superadmin)
+/login                       → LoginPage
+/dashboard                   → DashboardPage
+/transparency                → TransparencyPage          (all roles)
+/profile                     → ProfilePage               (all roles)
+/catalog                     → DataCatalogPage           (all roles)
+/analytics/global-stats      → AnalyticsGlobalStatsPage  (admin+)
+/dashboards                  → SupersetDashboardsPage    (all auth)
+/data/contingent             → ContingentPage            (data.submit)
+/data/finance                → FinancePage               (data.submit)
+/data/science                → SciencePage               (data.submit)
+/data/graduates              → GraduatesPage             (data.submit)
+/data/education              → EducationPage             (data.submit)
+/data/history                → HistoryPage               (data.submit)
+/data/coefficients           → CoefficientsPage          (all roles)
+/reports                     → AIReportsPage             (ai_insights.view)
+/presentations               → PresentationsPage         (ai_insights.view)
+/anomalies                   → AnomaliesPage             (ai_insights.view)
+/coverage                    → CoveragePage              (admin+)
+/admin/organisations         → OrganisationsPage         (admin+)
+/admin/users                 → UsersPage                 (admin+)
+/admin/approvals             → ApprovalsPage             (admin+)
+/admin/integrations          → IntegrationsPage          (admin+)
+/admin/audit                 → AuditLogPage              (admin+)
+/admin/api-keys              → ApiKeysPage               (superadmin)
+/admin/universal-import      → UniversalImportPage       (admin+)
 ```
 
-> Большинство компонентов страниц находятся в `portal.tsx` (один большой файл).
-> Feature-specific формы — в `src/features/`.
+> Большинство компонентов страниц находятся в `portal.tsx` (один большой файл, ~3325 строк).
+> Feature-specific компоненты — в `src/features/`.
 
 ---
 
@@ -312,12 +402,12 @@ success / warning / danger / info — семантические
 
 ### Цвета доменов (активный таб)
 ```
-Контингент → fc-navy-700
-Финансы    → fc-navy-700
-Наука      → fc-cyan-500
-Выпускники → fc-steel-500
+Контингент  → fc-navy-700
+Финансы     → fc-navy-700
+Наука       → fc-cyan-500
+Выпускники  → fc-steel-500
 Образование → fc-purple-500
-AI/Отчёты  → fc-purple-600
+AI/Отчёты   → fc-purple-600
 ```
 
 ### Lucide иконки — размеры
@@ -404,6 +494,9 @@ cfg = get_generation_config(task, json_mode=True)
 # Статус
 docker compose ps
 
+# Имена контейнеров: edu_api, edu_postgres, edu_redis, edu_celery_worker,
+#                    edu_celery_beat, edu_frontend, edu_superset
+
 # API (live mount — меняется без пересборки)
 docker compose restart api
 docker compose logs --tail=50 api
@@ -422,6 +515,9 @@ docker compose exec -T postgres psql -U edu_user -d edu_monitoring < migration.s
 
 # Прямой psql
 docker compose exec -T postgres psql -U edu_user -d edu_monitoring
+
+# Копирование файлов в контейнер (docker cp, НЕ docker compose cp)
+docker cp /tmp/file.py edu_api:/tmp/file.py
 
 # Redis flush (осторожно)
 # Через API: force_refresh=true в теле запроса AI insights
@@ -463,6 +559,10 @@ docker compose exec -T postgres psql -U edu_user -d edu_monitoring -c "\d table_
 | После деплоя фронта | Советуй пользователю открыть в инкогнито |
 | Аудит-mixin `models/mixins.py` | НЕ ТРОГАТЬ без крайней нужды — тщательно отлажен |
 | Пароли в audit_log | Маскируются как `"***"` — by design |
+| `TRUNCATE organizations CASCADE` | Каскад валит `users` (FK org_id). После — восстанавливать суперадмина вручную |
+| Стейл-данные после чистки БД | `anomaly_reports`, `evaluation_reports`, `ai_insight_history` НЕ имеют FK на domain-таблицы — чистить отдельно через DELETE |
+| bulk INSERT в asyncpg | Оборачивать каждую строку в `SAVEPOINT sp / RELEASE sp`, при ошибке `ROLLBACK TO sp` — иначе asyncpg абортирует всю транзакцию |
+| `docker compose cp` | Не работает с именами сервисов — использовать `docker cp <container_name>:/path` |
 
 ---
 

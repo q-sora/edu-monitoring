@@ -505,7 +505,7 @@ function ResultsTab({ orgId }: { orgId: string }) {
         </div>
       ) : (
         scores.map(score => {
-          const catCfg = CATEGORY_CONFIG[score.rating_category ?? ""] ?? {};
+          const catCfg = CATEGORY_CONFIG[score.rating_category ?? ""] ?? { bg: "", text: "", border: "" };
           return (
             <div key={score.education_level} className="card p-5 space-y-5">
               <div className="flex items-center justify-between">
@@ -739,7 +739,7 @@ function RatingTab() {
                 {isOpen && (
                   <div className="divide-y divide-slate-100">
                     {rs.orgs.map((r, idx) => {
-                      const catCfg = CATEGORY_CONFIG[r.rating_category ?? ""] ?? {};
+                      const catCfg = CATEGORY_CONFIG[r.rating_category ?? ""] ?? { bg: "", text: "", border: "" };
                       const delta = r.total_score !== undefined && r.prev_total_score !== undefined
                         ? Number(r.total_score) - Number(r.prev_total_score) : null;
                       return (
@@ -815,7 +815,7 @@ function RatingTab() {
             </thead>
             <tbody>
               {sorted.map((r, idx) => {
-                const catCfg = CATEGORY_CONFIG[r.rating_category ?? ""] ?? {};
+                const catCfg = CATEGORY_CONFIG[r.rating_category ?? ""] ?? { bg: "", text: "", border: "" };
                 const delta = r.total_score !== undefined && r.prev_total_score !== undefined
                   ? Number(r.total_score) - Number(r.prev_total_score) : null;
                 return (

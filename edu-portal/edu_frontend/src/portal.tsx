@@ -69,72 +69,55 @@ const NAV: { section: string; items: NavItem[] }[] = [
   {
     section: "Обзор",
     items: [
-      { to: "/dashboard", label: "Дашборд", icon: LayoutDashboard,
+      { to: "/dashboard", label: "Главный дашборд", icon: LayoutDashboard,
         show: r => ["superadmin", "admin", "management", "data_entry"].includes(r) },
-      { to: "/transparency", label: "Прозрачность", icon: BarChart3,
-        show: r => ["superadmin", "admin", "management"].includes(r) },
     ],
   },
   {
-    section: "Ввод данных",
+    section: "Уровни образования",
     items: [
-      { to: "/data/contingent", label: "Контингент",     icon: GraduationCap,
-        show: r => ["superadmin", "admin", "data_entry"].includes(r) },
-      { to: "/data/finance",    label: "Финансы",        icon: Wallet,
-        show: r => ["superadmin", "admin", "data_entry"].includes(r) },
-      { to: "/data/science",    label: "Научная деят.",  icon: FlaskConical,
-        show: r => ["superadmin", "admin", "data_entry"].includes(r) },
-      { to: "/data/graduates",  label: "Выпускники",     icon: UsersRound,
-        show: r => ["superadmin", "admin", "data_entry"].includes(r) },
-      { to: "/data/education",  label: "Образ. процесс", icon: BookOpen,
-        show: r => ["superadmin", "admin", "data_entry"].includes(r) },
-      { to: "/data/history",    label: "История заявок", icon: History,
-        show: r => ["superadmin", "admin", "data_entry"].includes(r) },
+      { to: "/edu/preschool",       label: "Дошкольное (ДДО)",    icon: Building2,      show: r => true },
+      { to: "/edu/school",          label: "Школы",               icon: GraduationCap,  show: r => true },
+      { to: "/edu/extracurricular", label: "Доп. образование",    icon: Sparkles,       show: r => true },
+      { to: "/edu/college",         label: "ТиПО / Колледжи",     icon: Building2,      show: r => true },
+      { to: "/edu/university",      label: "ОВПО / Университеты",  icon: GraduationCap,  show: r => true },
+      { to: "/edu/special",         label: "ГОНС",                icon: Building,       show: r => true },
     ],
   },
   {
     section: "Аналитика",
     items: [
-      { to: "/catalog",                 label: "Каталог данных",  icon: Database,
-        show: r => ["superadmin", "admin", "management", "data_entry"].includes(r) },
-      { to: "/analytics/global-stats", label: "Дашборды BI",     icon: BarChart3,
+      { to: "/anomalies",         label: "Аномалии",       icon: AlertTriangle,
         show: r => ["superadmin", "admin", "management"].includes(r) },
-      { to: "/coverage",          label: "Покрытие",       icon: Grid3X3,
+      { to: "/reports",           label: "AI-отчёты",      icon: Sparkles,
+        show: r => ["superadmin", "admin", "management"].includes(r) },
+      { to: "/presentations",     label: "Презентации",    icon: Presentation,
+        show: r => ["superadmin", "admin", "management"].includes(r) },
+      { to: "/transparency",      label: "Прозрачность",    icon: BarChart3,
+        show: r => ["superadmin", "admin", "management"].includes(r) },
+      { to: "/coverage",          label: "Покрытие данных", icon: Grid3X3,
         show: r => ["superadmin", "admin"].includes(r) },
-      { to: "/data/coefficients", label: "Коэффициенты",   icon: BarChart3,
-        show: r => ["superadmin", "admin", "management", "data_entry"].includes(r) },
-      { to: "/reports",           label: "AI инсайты",     icon: Sparkles,
-        show: r => ["superadmin", "admin", "management"].includes(r) },
-      { to: "/presentations",     label: "AI презентации", icon: Presentation,
-        show: r => ["superadmin", "admin", "management"].includes(r) },
-      { to: "/anomalies",         label: "Точки внимания", icon: AlertTriangle,
-        show: r => ["superadmin", "admin", "management"].includes(r) },
     ],
   },
   {
     section: "Администрирование",
     items: [
-      { to: "/admin/approvals",     label: "Согласование",  icon: FileCheck2,
+      { to: "/admin/organisations", label: "Организации",   icon: Building2,
         show: r => ["superadmin", "admin"].includes(r) },
       { to: "/admin/users",         label: "Пользователи",  icon: Users,
         show: r => ["superadmin", "admin"].includes(r) },
-      { to: "/admin/organisations", label: "Организации",   icon: Building2,
+      { to: "/admin/approvals",     label: "Согласования",  icon: FileCheck2,
         show: r => ["superadmin", "admin"].includes(r) },
       { to: "/admin/integrations",  label: "Интеграции",    icon: Plug,
         show: r => ["superadmin", "admin"].includes(r) },
-      { to: "/admin/audit",         label: "Журнал аудита", icon: FileSearch,
+      { to: "/catalog",             label: "Каталог данных", icon: Database,
+        show: r => true },
+      { to: "/admin/universal-import", label: "Импорт",     icon: FileUp,
         show: r => ["superadmin", "admin"].includes(r) },
-      { to: "/admin/api-keys",         label: "API ключи",          icon: Key,
+      { to: "/admin/audit",         label: "Аудит",         icon: FileSearch,
+        show: r => ["superadmin", "admin"].includes(r) },
+      { to: "/admin/api-keys",      label: "API-ключи",     icon: Key,
         show: r => r === "superadmin" },
-      { to: "/admin/universal-import", label: "Универс. импорт",    icon: FileUp,
-        show: r => ["superadmin", "admin"].includes(r) },
-    ],
-  },
-  {
-    section: "ТиППО",
-    items: [
-      { to: "/tippo/colleges", label: "Оценка колледжей", icon: Building2,
-        show: r => ["superadmin", "admin", "management", "data_entry"].includes(r) },
     ],
   },
 ];
@@ -142,12 +125,16 @@ const NAV: { section: string; items: NavItem[] }[] = [
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth();
   const role = user?.role ?? "";
-  const { data: anomalySummary } = useApi<Record<string, number>>(
-    ["superadmin", "admin", "management"].includes(role)
-      ? "/admin/anomalies/meta/summary"
-      : null,
+  
+  const { data: pendingResp } = useApi<{ total: number }>(
+    ["superadmin", "admin"].includes(role) ? "/admin/pending-submissions?limit=0" : null
   );
-  const criticalCount = anomalySummary?.critical ?? 0;
+  const { data: anomalyResp } = useApi<{ total: number }>(
+    ["superadmin", "admin", "management"].includes(role) ? "/admin/anomalies?limit=0" : null
+  );
+
+  const pendingCount = pendingResp?.total ?? 0;
+  const anomalyCount = anomalyResp?.total ?? 0;
 
   return (
     <aside className="w-64 bg-fc-navy-900 bg-fc-pattern h-full flex flex-col shrink-0">
@@ -194,10 +181,18 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                           }`}>
                             {item.label}
                           </span>
-                          {item.to === "/anomalies" && criticalCount > 0 && (
+                          
+                          {item.to === "/anomalies" && anomalyCount > 0 && (
                             <span className="relative z-10 shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-danger text-white
                                              text-[10px] font-bold flex items-center justify-center tabular-nums">
-                              {criticalCount > 99 ? "99+" : criticalCount}
+                              {anomalyCount > 99 ? "99+" : anomalyCount}
+                            </span>
+                          )}
+
+                          {item.to === "/admin/approvals" && pendingCount > 0 && (
+                            <span className="relative z-10 shrink-0 min-w-[18px] h-[18px] px-1 rounded-full bg-fc-blue-400 text-white
+                                             text-[10px] font-bold flex items-center justify-center tabular-nums">
+                              {pendingCount > 99 ? "99+" : pendingCount}
                             </span>
                           )}
                         </>
@@ -487,6 +482,7 @@ function DataEntryDashboard() {
     { to: "/data/science",    label: "Научная деят.",      icon: FlaskConical,  accent: "cyan" },
     { to: "/data/graduates",  label: "Выпускники",         icon: UsersRound,    accent: "steel" },
     { to: "/data/education",  label: "Образ. процесс",     icon: BookOpen,      accent: "purple" },
+      { to: "/data/school-rating", label: "Рейтинг школ", icon: BarChart3, accent: "cyan" },
   ];
 
   const accentColors: Record<string, string> = {
