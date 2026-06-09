@@ -158,8 +158,8 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
         <div className="flex-1 w-full">
           <label className="label-eyebrow mb-1.5 block">Организация</label>
           {user?.role === "data_entry" ? (
-            <div className="input bg-slate-50 flex items-center gap-2 font-semibold">
-              <Building className="w-4 h-4 text-fc-navy-400" />
+            <div className="input flex items-center gap-2 font-semibold" style={{ color: "var(--text-primary)" }}>
+              <Building className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
               {selectedOrg?.name_ru || "Организация не привязана"}
             </div>
           ) : (
@@ -180,13 +180,13 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
           <div className="flex gap-4 shrink-0">
             <div>
               <p className="label-eyebrow mb-1">Регион</p>
-              <p className="text-sm font-bold text-fc-navy-800">
+              <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
                 {regions.find(r => r.id === selectedOrg.region_id)?.name_ru || "—"}
               </p>
             </div>
             <div>
               <p className="label-eyebrow mb-1">ID</p>
-              <p className="text-[10px] font-mono text-fc-steel-500">{selectedOrgId?.slice(0, 8)}...</p>
+              <p className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{selectedOrgId?.slice(0, 8)}...</p>
             </div>
           </div>
         )}
@@ -236,7 +236,7 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
               />
             </motion.div>
           ) : (
-            <div className="card p-6 mb-6 text-center text-sm text-fc-steel-500">
+            <div className="card p-6 mb-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
               По данной организации еще не подано ни одной записи.
             </div>
           )}
@@ -256,11 +256,12 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
                         <stop offset="95%" stopColor="#0068b4" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
-                    <Tooltip 
-                      contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#8ca0c8'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#8ca0c8'}} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', background: '#1e3468', border: '1px solid rgba(0,168,202,0.15)', color: '#e8edf8' }}
+                      labelStyle={{ color: '#e8edf8' }}
                     />
                     <Area type="monotone" dataKey="students" stroke="#0068b4" fillOpacity={1} fill="url(#colorStudents)" strokeWidth={2} />
                   </AreaChart>
@@ -273,13 +274,14 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
                 </p>
                 <ResponsiveContainer width="100%" height={240}>
                   <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
-                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#64748b'}} />
-                    <Tooltip 
-                      contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#8ca0c8'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12, fill: '#8ca0c8'}} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: '8px', background: '#1e3468', border: '1px solid rgba(0,168,202,0.15)', color: '#e8edf8' }}
+                      labelStyle={{ color: '#e8edf8' }}
                     />
-                    <Bar dataKey="budget" fill="#19286d" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="budget" fill="#0068b4" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -288,23 +290,30 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
 
           {/* ЗОНА D: Табы ввода данных */}
           <div className="mt-8">
-            <div className="flex gap-1 mb-4 bg-slate-100 p-1 rounded-md overflow-x-auto scrollbar-thin">
+            <div className="flex gap-1 mb-4 p-1 rounded-md overflow-x-auto scrollbar-thin"
+              style={{ background: "var(--surface-mid)" }}>
               {config.tabs.map(tab => (
                 <button
                   key={tab}
                   onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 text-xs font-bold rounded-md transition-all ${
-                    activeTab === tab 
-                      ? "bg-white text-fc-navy-900 shadow-fc-sm" 
-                      : "text-fc-steel-500 hover:text-fc-navy-700 hover:bg-white/50"
-                  }`}
+                  className="px-4 py-2 text-xs font-bold rounded-md transition-all"
+                  style={activeTab === tab ? {
+                    background: "var(--surface-card)",
+                    color: "var(--text-primary)",
+                    boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                  } : {
+                    background: "transparent",
+                    color: "var(--text-muted)",
+                  }}
+                  onMouseEnter={e => { if (activeTab !== tab) (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+                  onMouseLeave={e => { if (activeTab !== tab) (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
                 >
                   {TAB_LABELS[tab] || tab}
                 </button>
               ))}
             </div>
 
-            <div className="mt-4 bg-white rounded-xl shadow-fc-sm border border-slate-100 p-6">
+            <div className="mt-4 card p-6">
               <ActiveForm 
                 orgId={selectedOrgId} 
                 readOnly={user?.role === "management"} 

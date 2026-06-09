@@ -86,39 +86,39 @@ const SPHERE_LABELS: Record<string, string> = {
 const SEVERITY_CONFIG: Record<string, {
   label:  string;
   badge:  string;
-  border: string;
+  color:  string;
   icon:   React.FC<{ className?: string }>;
   dot:    string;
 }> = {
   critical: {
     label:  "Критичное",
     badge:  "bg-danger/10 text-danger border-danger/20",
-    border: "border-l-danger",
+    color:  "#c1272d",
     icon:   ({ className }) => <AlertTriangle className={className} />,
     dot:    "bg-danger",
   },
   warning: {
     label:  "Предупреждение",
     badge:  "bg-warning/10 text-warning border-warning/20",
-    border: "border-l-warning",
+    color:  "#c47200",
     icon:   ({ className }) => <TrendingDown className={className} />,
     dot:    "bg-warning",
   },
   info: {
     label:  "К сведению",
-    badge:  "bg-fc-blue-50 text-fc-blue-600 border-fc-blue-100",
-    border: "border-l-fc-blue-300",
+    badge:  "bg-fc-blue-500/15 text-fc-blue-300 border-fc-blue-500/20",
+    color:  "#0068b4",
     icon:   ({ className }) => <Info className={className} />,
     dot:    "bg-fc-blue-400",
   },
 };
 
 const SPHERE_COLORS: Record<string, string> = {
-  contingent: "text-fc-navy-700 bg-fc-navy-50",
-  finance:    "text-fc-navy-700 bg-fc-navy-50",
-  science:    "text-fc-cyan-700 bg-fc-cyan-50",
-  graduates:  "text-fc-steel-600 bg-fc-steel-50",
-  education:  "text-fc-purple-600 bg-fc-purple-50",
+  contingent: "text-fc-navy-200 bg-fc-navy-800/60",
+  finance:    "text-fc-navy-200 bg-fc-navy-800/60",
+  science:    "text-fc-cyan-300 bg-fc-cyan-900/40",
+  graduates:  "text-fc-steel-300 bg-fc-steel-800/40",
+  education:  "text-fc-purple-300 bg-fc-purple-900/40",
 };
 
 const CHART_COLORS = ["#19286d", "#00a6ca", "#801e82", "#296695", "#0068b4"];
@@ -137,7 +137,7 @@ function fmtVal(v: number | null, label: string | null): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Sparkline({ trend, severity }: { trend: TrendPoint[]; severity: string }) {
-  if (!trend || trend.length === 0) return <div className="w-[100px] h-[36px] bg-slate-50 rounded" />;
+  if (!trend || trend.length === 0) return <div className="w-[100px] h-[36px] rounded" style={{ background: "rgba(255,255,255,0.04)" }} />;
 
   const lineColor = severity === "critical" ? "#c1272d"
                   : severity === "warning"  ? "#c47200"
@@ -169,23 +169,25 @@ function AnomalyCard({
   const cfg  = SEVERITY_CONFIG[item.severity] ?? SEVERITY_CONFIG.info;
   const Icon = cfg.icon;
   const dev  = item.deviation_pct;
-  const sphereColor = SPHERE_COLORS[item.sphere] ?? "text-fc-navy-700 bg-fc-navy-50";
+  const sphereColor = SPHERE_COLORS[item.sphere] ?? "text-fc-cyan-300 bg-fc-cyan-500/15";
 
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left card p-4 border-l-4 ${cfg.border} transition-all duration-150 hover:shadow-md
-        ${selected ? "ring-2 ring-fc-cyan-400 shadow-md" : ""}
+      className={`w-full text-left card p-4 relative transition-all duration-150
+        ${selected ? "ring-2 ring-fc-cyan-400" : ""}
         ${item.status === "dismissed" ? "opacity-40" : ""}
       `}
+      style={selected ? { borderColor: "var(--border-active)" } : {}}
     >
-      <div className="flex items-start gap-3">
-        {/* Severity icon */}
+      {/* Colored left strip — uses absolute positioning to preserve rounded corners */}
+      <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl"
+           style={{ background: cfg.color }} />
+      <div className="flex items-start gap-3 pl-3">
         <div className={`flex-none w-8 h-8 rounded-lg flex items-center justify-center ${cfg.badge}`}>
           <Icon className="w-4 h-4" />
         </div>
 
-        {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2 mb-1.5">
             <div className="flex items-center gap-2 flex-wrap">
@@ -201,37 +203,36 @@ function AnomalyCard({
                 </span>
               )}
             </div>
-            <ChevronRight className={`w-4 h-4 flex-none text-fc-steel-400 transition-transform ${selected ? "rotate-90" : ""}`} />
+            <ChevronRight className={`w-4 h-4 flex-none transition-transform ${selected ? "rotate-90" : ""}`}
+                          style={{ color: "var(--text-muted)" }} />
           </div>
 
-          <p className="font-semibold text-sm text-fc-navy-900 leading-snug truncate">
+          <p className="font-semibold text-sm leading-snug truncate" style={{ color: "var(--text-primary)" }}>
             {item.metric_label ?? item.metric_name}
           </p>
-          <p className="text-xs text-fc-steel-500 mt-0.5">
+          <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>
             {item.region_name ?? "Все регионы"} · {item.year} г.
           </p>
 
-          {/* Values row + sparkline */}
           <div className="flex items-center justify-between mt-3 gap-3">
             <div className="flex items-baseline gap-3">
-              <span className="text-base font-bold tabular-nums text-fc-navy-900">
+              <span className="text-base font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>
                 {fmtVal(item.raw_value, item.metric_label)}
               </span>
               {dev !== null && (
                 <span className={`flex items-center gap-0.5 text-xs font-semibold tabular-nums
-                  ${dev > 0 ? "text-fc-cyan-600" : "text-danger"}`}>
+                  ${dev > 0 ? "text-fc-cyan-400" : "text-danger"}`}>
                   {dev > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
                   {dev > 0 ? "+" : ""}{dev.toFixed(1)}%
                 </span>
               )}
               {item.expected_value !== null && (
-                <span className="text-xs text-fc-steel-400 tabular-nums hidden sm:inline">
+                <span className="text-xs tabular-nums hidden sm:inline" style={{ color: "var(--text-muted)" }}>
                   ср. {fmtVal(item.expected_value, item.metric_label)}
                 </span>
               )}
             </div>
 
-            {/* Sparkline */}
             {item.trend_json && item.trend_json.length > 0 && (
               <div className="flex-none">
                 <Sparkline trend={item.trend_json} severity={item.severity} />
@@ -239,9 +240,8 @@ function AnomalyCard({
             )}
           </div>
 
-          {/* AI preview */}
           {item.ai_explanation_json?.summary && (
-            <p className="text-xs text-fc-steel-500 mt-2 line-clamp-2 italic">
+            <p className="text-xs mt-2 line-clamp-2 italic" style={{ color: "var(--text-muted)" }}>
               {item.ai_explanation_json.summary}
             </p>
           )}
@@ -287,25 +287,29 @@ function DetailPanel({
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-start justify-between p-5 border-b border-slate-100 bg-white sticky top-0 z-10">
+      <div className="flex items-start justify-between p-5 sticky top-0 z-10"
+           style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--surface-card)" }}>
         <div className="flex-1 min-w-0 pr-4">
           <div className="flex items-center gap-2 mb-1.5">
             <span className={`pill text-[10px] px-2 py-0.5 border ${cfg.badge}`}>
               {cfg.label}
             </span>
-            <span className="label-eyebrow text-[10px] text-fc-steel-400">
+            <span className="label-eyebrow text-[10px]" style={{ color: "var(--text-muted)" }}>
               {SPHERE_LABELS[item.sphere] ?? item.sphere}
             </span>
           </div>
-          <h2 className="font-display font-bold text-fc-navy-900 text-lg leading-tight">
+          <h2 className="font-display font-bold text-lg leading-tight" style={{ color: "var(--text-primary)" }}>
             {item.metric_label ?? item.metric_name}
           </h2>
-          <p className="text-sm text-fc-steel-500 mt-0.5">
+          <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
             {item.region_name ?? "—"} · {item.year} г.
           </p>
         </div>
         <button onClick={onClose}
-          className="flex-none p-2 rounded-lg hover:bg-slate-100 text-fc-steel-400 hover:text-fc-navy-700 transition-colors">
+          className="flex-none p-2 rounded-lg transition-colors"
+          style={{ color: "var(--text-muted)" }}
+          onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}
+          onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -321,29 +325,29 @@ function DetailPanel({
             { label: "Откл.",    value: item.deviation_pct != null ? `${item.deviation_pct > 0 ? "+" : ""}${item.deviation_pct.toFixed(1)}%` : "—" },
           ].map(kpi => (
             <div key={kpi.label} className="card p-3 text-center">
-              <p className="label-eyebrow text-[10px] text-fc-steel-400 mb-1">{kpi.label}</p>
-              <p className="font-bold text-fc-navy-900 tabular-nums">{kpi.value}</p>
+              <p className="label-eyebrow text-[10px] mb-1">{kpi.label}</p>
+              <p className="font-bold tabular-nums" style={{ color: "var(--text-primary)" }}>{kpi.value}</p>
             </div>
           ))}
         </div>
 
         {/* ComposedChart */}
         {chartData.length > 0 && (
-          <div>
-            <p className="label-eyebrow text-[10px] text-fc-steel-400 mb-2">Динамика по годам</p>
+          <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--border-subtle)" }}>
+            <p className="label-eyebrow text-[10px] mb-2" style={{ color: "var(--text-muted)" }}>Динамика по годам</p>
             <ResponsiveContainer width="100%" height={200}>
               <ComposedChart data={chartData} margin={{ top: 4, right: 8, left: 0, bottom: 4 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                <XAxis dataKey="year" tick={{ fontSize: 10, fill: "#64748b" }} />
-                <YAxis tick={{ fontSize: 10, fill: "#64748b" }} width={48} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                <XAxis dataKey="year" tick={{ fontSize: 10, fill: "#4d6296" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "#4d6296" }} width={48} axisLine={false} tickLine={false} />
                 <Tooltip
-                  contentStyle={{ fontSize: "11px", borderRadius: "8px", border: "1px solid #e2e8f0" }}
+                  contentStyle={{ fontSize: "11px", borderRadius: "8px", border: "1px solid rgba(0,168,202,0.3)", background: "#1a2d5a", color: "#e8edf8" }}
                 />
-                <Legend wrapperStyle={{ fontSize: "11px" }} />
+                <Legend wrapperStyle={{ fontSize: "11px", color: "#8ca0c8" }} />
                 <Area
                   type="monotone" dataKey="Среднее"
-                  fill="#e2e8f0" stroke="#94a3b8"
-                  fillOpacity={0.5} strokeWidth={1}
+                  fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.2)"
+                  fillOpacity={1} strokeWidth={1}
                 />
                 <Line
                   type="monotone" dataKey="Регион"
@@ -365,44 +369,45 @@ function DetailPanel({
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-fc-purple-500" />
-              <p className="label-eyebrow text-[10px] text-fc-steel-400">Анализ Gemini AI</p>
+              <p className="label-eyebrow text-[10px]" style={{ color: "var(--text-muted)" }}>Анализ Gemini AI</p>
             </div>
 
             {/* Summary */}
-            <div className="bg-fc-navy-50 rounded-xl p-4">
-              <p className="text-sm font-semibold text-fc-navy-900 leading-relaxed">{ai.summary}</p>
+            <div className="rounded-xl p-4" style={{ background: "rgba(0,104,180,0.12)", border: "1px solid rgba(0,168,202,0.2)" }}>
+              <p className="text-sm font-semibold leading-relaxed" style={{ color: "var(--text-primary)" }}>{ai.summary}</p>
             </div>
 
             {/* Reasons */}
             <div>
-              <p className="text-xs font-semibold text-fc-steel-500 uppercase tracking-wide mb-2.5">
+              <p className="text-xs font-semibold uppercase tracking-wide mb-2.5" style={{ color: "var(--text-muted)" }}>
                 Возможные причины
               </p>
               <ol className="space-y-2.5">
                 {ai.reasons.map((r, i) => (
                   <li key={i} className="flex gap-3 text-sm">
-                    <span className="flex-none w-5 h-5 rounded-full bg-fc-navy-100 text-fc-navy-700 text-xs font-bold flex items-center justify-center mt-0.5">
+                    <span className="flex-none w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center mt-0.5"
+                          style={{ background: "rgba(0,104,180,0.25)", color: "#4da8d8" }}>
                       {i + 1}
                     </span>
-                    <span className="text-fc-navy-800 leading-relaxed">{r}</span>
+                    <span className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>{r}</span>
                   </li>
                 ))}
               </ol>
             </div>
 
             {/* Recommendation */}
-            <div className="border border-fc-cyan-200 bg-fc-cyan-50 rounded-xl p-4">
-              <p className="label-eyebrow text-[10px] text-fc-cyan-600 mb-1.5">Рекомендация</p>
-              <p className="text-sm text-fc-navy-800 leading-relaxed">{ai.recommendation}</p>
+            <div className="rounded-xl p-4" style={{ border: "1px solid rgba(0,168,202,0.25)", background: "rgba(0,168,202,0.08)" }}>
+              <p className="label-eyebrow text-[10px] mb-1.5" style={{ color: "#00a6ca" }}>Рекомендация</p>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>{ai.recommendation}</p>
             </div>
 
             {/* Context */}
             {ai.context && (
-              <p className="text-xs text-fc-steel-400 italic leading-relaxed">{ai.context}</p>
+              <p className="text-xs italic leading-relaxed" style={{ color: "var(--text-muted)" }}>{ai.context}</p>
             )}
           </div>
         ) : (
-          <div className="text-center py-8 text-fc-steel-400">
+          <div className="text-center py-8" style={{ color: "var(--text-muted)" }}>
             <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40" />
             <p className="text-sm">AI-объяснение формируется…</p>
           </div>
@@ -410,7 +415,7 @@ function DetailPanel({
       </div>
 
       {/* Footer actions */}
-      <div className="border-t border-slate-100 p-4 flex items-center gap-2 bg-white">
+      <div className="p-4 flex items-center gap-2" style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--surface-mid)" }}>
         {item.status !== "reviewed" && (
           <button
             onClick={() => updateStatus("reviewed")}
@@ -425,7 +430,7 @@ function DetailPanel({
           <button
             onClick={() => updateStatus("dismissed")}
             disabled={saving}
-            className="btn-ghost flex items-center gap-1.5 text-xs px-3 py-1.5 text-fc-steel-500"
+            className="btn-ghost flex items-center gap-1.5 text-xs px-3 py-1.5"
           >
             <EyeOff className="w-3.5 h-3.5" />
             Игнорировать
@@ -435,13 +440,13 @@ function DetailPanel({
           <button
             onClick={() => updateStatus("new")}
             disabled={saving}
-            className="btn-ghost flex items-center gap-1.5 text-xs px-3 py-1.5 text-fc-steel-400"
+            className="btn-ghost flex items-center gap-1.5 text-xs px-3 py-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Сбросить
           </button>
         )}
-        {saving && <Loader2 className="w-4 h-4 animate-spin text-fc-steel-400 ml-auto" />}
+        {saving && <Loader2 className="w-4 h-4 animate-spin ml-auto" style={{ color: "var(--text-muted)" }} />}
       </div>
     </div>
   );
@@ -541,13 +546,14 @@ export default function AnomaliesPage() {
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
 
       {/* ── Left sidebar ─────────────────────────────────────────────────── */}
-      <aside className="w-64 flex-none border-r border-slate-100 bg-white flex flex-col overflow-y-auto">
-        <div className="p-4 border-b border-slate-100">
+      <aside className="w-64 flex-none flex flex-col overflow-y-auto"
+             style={{ borderRight: "1px solid var(--border-subtle)", background: "var(--surface-mid)" }}>
+        <div className="p-4" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
           <div className="flex items-center gap-2 mb-1">
             <AlertTriangle className="w-4 h-4 text-danger" />
-            <h2 className="font-display font-bold text-fc-navy-900 text-sm">Точки внимания</h2>
+            <h2 className="font-display font-bold text-sm" style={{ color: "var(--text-primary)" }}>Точки внимания</h2>
           </div>
-          <p className="text-xs text-fc-steel-400">Значимые статистические отклонения</p>
+          <p className="text-xs" style={{ color: "var(--text-muted)" }}>Значимые статистические отклонения</p>
 
           {/* Summary badges */}
           {summary && (
@@ -573,24 +579,26 @@ export default function AnomaliesPage() {
 
         {/* Filters */}
         <div className="p-4 space-y-4 flex-1">
-          <div className="flex items-center gap-1.5 text-fc-steel-400">
+          <div className="flex items-center gap-1.5" style={{ color: "var(--text-muted)" }}>
             <Filter className="w-3 h-3" />
             <span className="label-eyebrow text-[10px]">Фильтры</span>
           </div>
 
           {/* Severity */}
           <div>
-            <label className="label-eyebrow text-[10px] text-fc-steel-400 block mb-1.5">
+            <label className="label-eyebrow text-[10px] block mb-1.5" style={{ color: "var(--text-muted)" }}>
               Критичность
             </label>
             <div className="space-y-1">
               {["", "critical", "warning", "info"].map(sev => (
                 <button key={sev}
                   onClick={() => applyFilter("severity", sev)}
-                  className={`w-full text-left text-xs px-2.5 py-1.5 rounded-lg transition-colors
-                    ${filters.severity === sev
-                      ? "bg-fc-navy-700 text-white"
-                      : "text-fc-navy-700 hover:bg-fc-navy-50"}`}
+                  className="w-full text-left text-xs px-2.5 py-1.5 rounded-lg transition-colors"
+                  style={filters.severity === sev
+                    ? { background: "#0068b4", color: "#fff" }
+                    : { color: "var(--text-secondary)" }}
+                  onMouseEnter={e => { if (filters.severity !== sev) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; }}
+                  onMouseLeave={e => { if (filters.severity !== sev) e.currentTarget.style.background = "transparent"; }}
                 >
                   {sev === "" ? "Все уровни" :
                    sev === "critical" ? "⬤ Критичные" :
@@ -602,7 +610,7 @@ export default function AnomaliesPage() {
 
           {/* Sphere */}
           <div>
-            <label className="label-eyebrow text-[10px] text-fc-steel-400 block mb-1.5">
+            <label className="label-eyebrow text-[10px] block mb-1.5" style={{ color: "var(--text-muted)" }}>
               Сфера
             </label>
             <select
@@ -619,7 +627,7 @@ export default function AnomaliesPage() {
 
           {/* Year */}
           <div>
-            <label className="label-eyebrow text-[10px] text-fc-steel-400 block mb-1.5">
+            <label className="label-eyebrow text-[10px] block mb-1.5" style={{ color: "var(--text-muted)" }}>
               Год
             </label>
             <select
@@ -634,7 +642,7 @@ export default function AnomaliesPage() {
 
           {/* Region */}
           <div>
-            <label className="label-eyebrow text-[10px] text-fc-steel-400 block mb-1.5">
+            <label className="label-eyebrow text-[10px] block mb-1.5" style={{ color: "var(--text-muted)" }}>
               Регион
             </label>
             <select
@@ -649,7 +657,7 @@ export default function AnomaliesPage() {
 
           {/* Status */}
           <div>
-            <label className="label-eyebrow text-[10px] text-fc-steel-400 block mb-1.5">
+            <label className="label-eyebrow text-[10px] block mb-1.5" style={{ color: "var(--text-muted)" }}>
               Статус
             </label>
             <select
@@ -666,7 +674,7 @@ export default function AnomaliesPage() {
         </div>
 
         {/* Trigger scan */}
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4" style={{ borderTop: "1px solid var(--border-subtle)" }}>
           <button
             onClick={triggerScan}
             disabled={triggering}
@@ -677,7 +685,7 @@ export default function AnomaliesPage() {
               : <><RefreshCw className="w-3.5 h-3.5" /> Запустить сканирование</>
             }
           </button>
-          <p className="text-[10px] text-fc-steel-400 mt-1.5 text-center">
+          <p className="text-[10px] mt-1.5 text-center" style={{ color: "var(--text-muted)" }}>
             Автоматически каждый понедельник в 03:00
           </p>
         </div>
@@ -687,10 +695,10 @@ export default function AnomaliesPage() {
       <div className="flex-1 flex overflow-hidden">
         <div className={`flex-1 flex flex-col overflow-hidden transition-all ${selected ? "max-w-[calc(100%-420px)]" : "max-w-full"}`}>
           {/* Toolbar */}
-          <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-white">
+          <div className="flex items-center justify-between px-5 py-3" style={{ borderBottom: "1px solid var(--border-subtle)", background: "var(--surface-mid)" }}>
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-fc-blue-500" />
-              <span className="text-sm font-semibold text-fc-navy-900">
+              <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
                 {loading ? "Загрузка…" : `${total} отклонений`}
               </span>
             </div>
@@ -704,14 +712,14 @@ export default function AnomaliesPage() {
           {/* Cards list */}
           <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
             {loading && items.length === 0 ? (
-              <div className="text-center py-16 text-fc-steel-400">
+              <div className="text-center py-16" style={{ color: "var(--text-muted)" }}>
                 <Loader2 className="w-8 h-8 mx-auto animate-spin mb-2" />
                 <p className="text-sm">Загрузка данных…</p>
               </div>
             ) : items.length === 0 ? (
-              <div className="text-center py-16 text-fc-steel-400">
+              <div className="text-center py-16" style={{ color: "var(--text-muted)" }}>
                 <CheckCircle2 className="w-10 h-10 mx-auto mb-3 opacity-40" />
-                <p className="font-semibold text-fc-navy-700 mb-1">Отклонений не обнаружено</p>
+                <p className="font-semibold mb-1" style={{ color: "var(--text-primary)" }}>Отклонений не обнаружено</p>
                 <p className="text-sm">
                   {Object.values(filters).some(Boolean)
                     ? "Попробуйте изменить фильтры или запустить сканирование"
@@ -740,12 +748,12 @@ export default function AnomaliesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100 bg-white">
+            <div className="flex items-center justify-between px-5 py-3" style={{ borderTop: "1px solid var(--border-subtle)", background: "var(--surface-mid)" }}>
               <button onClick={() => load(page - 1)} disabled={page === 1}
                 className="btn-ghost text-xs px-3 py-1.5 disabled:opacity-30">
                 ← Назад
               </button>
-              <span className="text-xs text-fc-steel-400">
+              <span className="text-xs" style={{ color: "var(--text-muted)" }}>
                 {page} / {totalPages}
               </span>
               <button onClick={() => load(page + 1)} disabled={page === totalPages}
@@ -764,7 +772,8 @@ export default function AnomaliesPage() {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="w-[420px] flex-none border-l border-slate-100 bg-white shadow-xl overflow-hidden flex flex-col"
+              className="w-[420px] flex-none overflow-hidden flex flex-col"
+              style={{ borderLeft: "1px solid var(--border-subtle)", background: "var(--surface-card)", boxShadow: "-8px 0 32px rgba(0,0,0,0.3)" }}
             >
               <DetailPanel
                 item={selected}

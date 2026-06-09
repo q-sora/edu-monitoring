@@ -97,7 +97,7 @@ function regionFill(
   hovered: number | null,
 ): string {
   if (selected === regionId && regionId !== null) return "#00a6ca";
-  if (hovered  === regionId && regionId !== null) return "#19286d";
+  if (hovered  === regionId && regionId !== null) return "#4dc8e8";
   if (!data || regionId === null) return "#296695";
   const stat = data[String(regionId)];
   if (!stat || max === 0) return "#296695";
@@ -180,7 +180,7 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
   return (
     <div className="card overflow-hidden mb-5">
       {/* ── Заголовок + фильтры ── */}
-      <div className="px-5 py-3 border-b border-slate-100">
+      <div className="px-5 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
         <div className="flex flex-wrap items-center gap-3">
           <p className="label-eyebrow mr-auto">Региональная аналитика</p>
 
@@ -217,7 +217,7 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
 
       {/* ── Тело ── */}
       {loading && (
-        <div className="flex items-center justify-center py-16 text-fc-steel-500">
+        <div className="flex items-center justify-center py-16" style={{ color: "var(--text-muted)" }}>
           <Loader2 className="w-4 h-4 animate-spin mr-2" />
           <span className="text-sm">Загрузка…</span>
         </div>
@@ -228,13 +228,13 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
         <div className="flex flex-col lg:flex-row">
 
           {/* ── Карта ── */}
-          <div className="flex-1 min-w-0 bg-slate-50 relative">
+          <div className="flex-1 min-w-0 relative" style={{ background: "var(--surface-mid)" }}>
             {geoError ? (
               <div className="flex items-center justify-center py-16 text-sm text-danger">
                 Не удалось загрузить карту
               </div>
             ) : geoFeatures.length === 0 ? (
-              <div className="flex items-center justify-center py-16 text-fc-steel-500">
+              <div className="flex items-center justify-center py-16" style={{ color: "var(--text-muted)" }}>
                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
                 <span className="text-sm">Карта…</span>
               </div>
@@ -254,7 +254,7 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
                       key={iso || idx}
                       d={d}
                       fill={regionFill(regionId, data, metric, max, selected, hovered)}
-                      stroke="#fff"
+                      stroke="rgba(15,27,66,0.6)"
                       strokeWidth={0.6}
                       strokeLinejoin="round"
                       style={{ cursor: "pointer", transition: "fill 0.15s" }}
@@ -270,67 +270,62 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
             {/* Легенда */}
             {geoFeatures.length > 0 && (
               <div className="absolute bottom-3 left-4 right-4 flex items-center gap-2">
-                <span className="text-[10px] text-fc-steel-400 whitespace-nowrap">Меньше</span>
+                <span className="text-[10px] whitespace-nowrap" style={{ color: "var(--text-muted)" }}>Меньше</span>
                 <div className="flex-1 h-1.5 rounded-full" style={{ background: "linear-gradient(to right, #296695, #00a6ca)" }} />
-                <span className="text-[10px] text-fc-steel-400 whitespace-nowrap">Больше</span>
+                <span className="text-[10px] whitespace-nowrap" style={{ color: "var(--text-muted)" }}>Больше</span>
               </div>
             )}
           </div>
 
           {/* ── Панель статистики ── */}
-          <div className="w-full lg:w-64 xl:w-72 border-t lg:border-t-0 lg:border-l border-slate-100 flex flex-col">
+          <div className="w-full lg:w-64 xl:w-72 flex flex-col border-t lg:border-t-0 lg:border-l"
+               style={{ borderColor: "var(--border-subtle)" }}>
             {selectedStat ? (
               <div className="p-5 flex flex-col gap-3 flex-1">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <p className="label-eyebrow mb-1">Регион</p>
-                    <p className="font-semibold text-fc-navy-900 text-sm leading-snug">{selectedStat.name_ru}</p>
+                    <p className="font-semibold text-sm leading-snug" style={{ color: "var(--text-primary)" }}>{selectedStat.name_ru}</p>
                     {orgTypeId && (
                       <span className="pill mt-1 inline-block text-[10px]">
                         {ORG_TYPES.find(t => t.id === orgTypeId)?.code}
                       </span>
                     )}
                   </div>
-                  <button onClick={() => setSelected(null)} className="text-fc-steel-300 hover:text-fc-steel-500 transition-colors mt-0.5 shrink-0">
+                  <button onClick={() => setSelected(null)} className="mt-0.5 shrink-0 transition-colors"
+                    style={{ color: "var(--text-muted)" }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "var(--text-secondary)")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}>
                     <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-2">
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="label-eyebrow mb-1">{contingentLabel}</p>
-                    <p className="text-2xl font-semibold tabular-nums text-fc-navy-900">
-                      {selectedStat.total_students > 0 ? fmtN(selectedStat.total_students) : "—"}
-                    </p>
-                  </div>
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="label-eyebrow mb-1">Бюджет</p>
-                    <p className="text-base font-semibold tabular-nums text-fc-navy-900">{fmtMoney(selectedStat.budget)}</p>
-                  </div>
-                  {selectedStat.total_students > 0 && selectedStat.budget > 0 && (
-                    <div className="bg-slate-50 rounded-lg p-3">
-                      <p className="label-eyebrow mb-1">Бюджет на 1 чел.</p>
-                      <p className="text-sm font-semibold tabular-nums text-fc-navy-900">
-                        {fmtMoney(selectedStat.budget / selectedStat.total_students)}
+                  {[
+                    { label: contingentLabel, value: selectedStat.total_students > 0 ? fmtN(selectedStat.total_students) : "—", big: true },
+                    { label: "Бюджет", value: fmtMoney(selectedStat.budget), big: false },
+                    ...(selectedStat.total_students > 0 && selectedStat.budget > 0
+                      ? [{ label: "Бюджет на 1 чел.", value: fmtMoney(selectedStat.budget / selectedStat.total_students), big: false }]
+                      : []),
+                    { label: "Организаций", value: selectedStat.org_count > 0 ? fmtN(selectedStat.org_count) : "—", big: false },
+                  ].map(item => (
+                    <div key={item.label} className="rounded-lg p-3" style={{ background: "rgba(255,255,255,0.04)", border: "1px solid var(--border-subtle)" }}>
+                      <p className="label-eyebrow mb-1">{item.label}</p>
+                      <p className={`${item.big ? "text-2xl" : "text-base"} font-semibold tabular-nums`} style={{ color: "var(--text-primary)" }}>
+                        {item.value}
                       </p>
                     </div>
-                  )}
-                  <div className="bg-slate-50 rounded-lg p-3">
-                    <p className="label-eyebrow mb-1">Организаций</p>
-                    <p className="text-base font-semibold tabular-nums text-fc-navy-900">
-                      {selectedStat.org_count > 0 ? fmtN(selectedStat.org_count) : "—"}
-                    </p>
-                  </div>
+                  ))}
                 </div>
 
-                <p className="text-[10px] text-fc-steel-300 mt-auto">
+                <p className="text-[10px] mt-auto" style={{ color: "var(--text-muted)" }}>
                   {year} · {orgTypeId ? ORG_TYPES.find(t => t.id === orgTypeId)?.label : "Все уровни образования"}
                 </p>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center p-8 text-center flex-1">
-                <MapPin className="w-6 h-6 text-fc-steel-300 mb-2" />
-                <p className="text-xs text-fc-steel-400 leading-relaxed">
+                <MapPin className="w-6 h-6 mb-2" style={{ color: "var(--text-muted)" }} />
+                <p className="text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
                   Нажмите на регион для просмотра статистики
                 </p>
               </div>
@@ -338,22 +333,28 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
 
             {/* Топ-5 регионов */}
             {topRegions.length > 0 && (
-              <div className="border-t border-slate-100">
-                <div className="px-4 py-2 border-b border-slate-50">
+              <div style={{ borderTop: "1px solid var(--border-subtle)" }}>
+                <div className="px-4 py-2" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
                   <p className="label-eyebrow text-[10px]">
                     Топ по {metric === "total_students" ? contingentLabel.toLowerCase() : "бюджету"}
                   </p>
                 </div>
-                <ul className="divide-y divide-slate-50">
+                <ul>
                   {topRegions.map(([id, stat], i) => (
                     <li
                       key={id}
-                      className={`flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors hover:bg-slate-50 ${selected === Number(id) ? "bg-sky-50" : ""}`}
+                      className="flex items-center gap-2 px-4 py-2 cursor-pointer transition-colors"
+                      style={{
+                        borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        background: selected === Number(id) ? "rgba(0,168,202,0.08)" : "transparent",
+                      }}
                       onClick={() => toggleRegion(Number(id))}
+                      onMouseEnter={e => { if (selected !== Number(id)) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                      onMouseLeave={e => { if (selected !== Number(id)) e.currentTarget.style.background = "transparent"; }}
                     >
-                      <span className="text-[10px] text-fc-steel-400 w-3 shrink-0 tabular-nums">{i + 1}</span>
-                      <span className="text-xs text-fc-navy-900 truncate flex-1">{stat.name_ru}</span>
-                      <span className="text-[10px] tabular-nums text-fc-steel-500 shrink-0">
+                      <span className="text-[10px] w-3 shrink-0 tabular-nums" style={{ color: "var(--text-muted)" }}>{i + 1}</span>
+                      <span className="text-xs truncate flex-1" style={{ color: "var(--text-primary)" }}>{stat.name_ru}</span>
+                      <span className="text-[10px] tabular-nums shrink-0" style={{ color: "var(--text-secondary)" }}>
                         {metric === "total_students" ? fmtN(stat.total_students) : fmtMoney(stat.budget)}
                       </span>
                     </li>

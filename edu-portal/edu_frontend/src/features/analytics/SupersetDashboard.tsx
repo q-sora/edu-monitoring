@@ -20,22 +20,25 @@ interface SupersetDashboardProps {
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 
 function DashboardSkeleton() {
+  const s1 = { background: "rgba(255,255,255,0.08)" };
+  const s2 = { background: "rgba(255,255,255,0.05)" };
+  const s3 = { background: "rgba(255,255,255,0.03)" };
   return (
     <div className="p-6 space-y-5 animate-pulse overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <div className="h-5 w-52 bg-fc-navy-100 rounded" />
-        <div className="h-4 w-20 bg-slate-100 rounded" />
+        <div className="h-5 w-52 rounded" style={s1} />
+        <div className="h-4 w-20 rounded" style={s2} />
       </div>
 
       {/* KPI strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="card p-4 space-y-2.5 overflow-hidden relative">
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-fc-navy-100 rounded" />
-            <div className="h-2.5 w-16 bg-fc-steel-100 rounded" />
-            <div className="h-8 w-20 bg-fc-navy-100 rounded" />
-            <div className="h-2 w-14 bg-slate-100 rounded" />
+            <div className="absolute left-0 top-0 bottom-0 w-1 rounded" style={{ background: "rgba(0,168,202,0.3)" }} />
+            <div className="h-2.5 w-16 rounded" style={s2} />
+            <div className="h-8 w-20 rounded" style={s1} />
+            <div className="h-2 w-14 rounded" style={s2} />
           </div>
         ))}
       </div>
@@ -45,26 +48,26 @@ function DashboardSkeleton() {
         {Array.from({ length: 2 }).map((_, i) => (
           <div key={i} className="card p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <div className="h-3 w-32 bg-fc-steel-100 rounded" />
-              <div className="h-3 w-10 bg-slate-100 rounded" />
+              <div className="h-3 w-32 rounded" style={s2} />
+              <div className="h-3 w-10 rounded" style={s3} />
             </div>
-            <div className="h-52 bg-gradient-to-b from-fc-navy-50 to-slate-50 rounded-lg" />
+            <div className="h-52 rounded-lg" style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" }} />
           </div>
         ))}
       </div>
 
       {/* Table */}
       <div className="card overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100">
-          <div className="h-2.5 w-40 bg-fc-steel-100 rounded" />
+        <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
+          <div className="h-2.5 w-40 rounded" style={s2} />
         </div>
         <div className="p-4 space-y-2.5">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex gap-4 items-center">
-              <div className="h-2.5 flex-1 bg-slate-100 rounded" style={{ opacity: 1 - i * 0.12 }} />
-              <div className="h-2.5 w-16 bg-fc-navy-50 rounded" />
-              <div className="h-2.5 w-12 bg-slate-100 rounded" />
-              <div className="h-2.5 w-10 bg-slate-100 rounded" />
+              <div className="h-2.5 flex-1 rounded" style={{ ...s2, opacity: 1 - i * 0.12 }} />
+              <div className="h-2.5 w-16 rounded" style={s3} />
+              <div className="h-2.5 w-12 rounded" style={s2} />
+              <div className="h-2.5 w-10 rounded" style={s2} />
             </div>
           ))}
         </div>
@@ -128,7 +131,8 @@ export default function SupersetDashboard({
             key="skeleton"
             initial={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.35, ease: [0.25, 0.1, 0.25, 1] } }}
-            className="absolute inset-0 z-10 bg-white overflow-auto"
+            className="absolute inset-0 z-10 overflow-auto"
+            style={{ background: "var(--surface-dark)" }}
           >
             <DashboardSkeleton />
           </motion.div>
@@ -137,7 +141,7 @@ export default function SupersetDashboard({
 
       {/* Error state */}
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center z-10 bg-white">
+        <div className="absolute inset-0 flex items-center justify-center z-10" style={{ background: "var(--surface-dark)" }}>
           <div className="card p-6 text-center max-w-sm shadow-fc-lg border border-danger/10">
             <div className="w-12 h-12 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-3">
               <AlertTriangle className="w-6 h-6 text-danger" />

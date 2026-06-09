@@ -102,8 +102,12 @@ export default {
           DEFAULT: "#801e82",
         },
 
+        // ── Тёмные поверхности (dark theme) ────────────────────────────────
+        "surface-dark": "#0f1b42",
+        "surface-mid":  "#1a2d5a",
+        "surface-card": "#1e3468",
+
         // ── Семантические алиасы для статусов ──────────────────────────────
-        // Используются вместо emerald/red/amber, чтобы выдерживать стиль.
         success: "#0e8c5a",
         warning: "#c47200",
         danger:  "#c1272d",
@@ -111,8 +115,9 @@ export default {
       },
 
       fontFamily: {
-        // Inter — основной
+        // Golos Text — основной (по референсу брендбука 2026)
         sans: [
+          "Golos Text",
           "Inter",
           "ui-sans-serif",
           "system-ui",
@@ -124,6 +129,7 @@ export default {
         // Raleway — заголовки (display)
         display: [
           "Raleway",
+          "Golos Text",
           "Inter",
           "ui-sans-serif",
           "system-ui",

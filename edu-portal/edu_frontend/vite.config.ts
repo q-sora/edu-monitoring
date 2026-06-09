@@ -16,7 +16,7 @@ export default defineConfig({
     // so the browser sees everything on port 3000 (no CORS issues).
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://192.168.13.245:8000",
         changeOrigin: true,
         // credentials (httpOnly cookies) are forwarded automatically
       },

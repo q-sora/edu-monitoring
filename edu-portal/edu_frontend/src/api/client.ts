@@ -36,10 +36,11 @@ import type { RefreshResponse } from "@/auth/types";
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
-const API_BASE = "http://192.168.13.245:8000/api/v1";
-//#import.meta.env.VITE_API_URL
-// # ? `${import.meta.env.VITE_API_URL}/api/v1`
-// # : "/api/v1";   // fallback: same origin (nginx reverse proxy in production)
+// const API_BASE = "http://192.168.13.245:8000/api/v1";
+
+const API_BASE = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL}/api/v1`
+  : "/api/v1";   // fallback: same origin (nginx reverse proxy in production)
 
 // ── Custom event used to signal auth failure to the React tree ────────────────
 

@@ -32,17 +32,17 @@ interface FieldItem {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Constants
+// Constants — dark theme
 // ─────────────────────────────────────────────────────────────────────────────
 
-const LEVEL_META: Record<string, { name: string; color: string; bg: string }> = {
-  do:    { name: "Дошкольное образование",                color: "text-fc-navy-700",   bg: "bg-fc-navy-50   border-fc-navy-200"   },
-  dopo:  { name: "Дополнительное образование",             color: "text-fc-blue-600",   bg: "bg-fc-blue-50   border-fc-blue-200"   },
-  so:    { name: "Среднее образование",                    color: "text-fc-cyan-600",   bg: "bg-fc-cyan-50   border-fc-cyan-200"   },
-  tippo: { name: "ТиППО",                                  color: "text-fc-steel-600",  bg: "bg-fc-steel-50  border-fc-steel-200"  },
-  vipo:  { name: "Высшее и послевузовское образование",    color: "text-fc-purple-600", bg: "bg-fc-purple-50 border-fc-purple-200" },
-  obsh:  { name: "Общежития",                              color: "text-fc-navy-500",   bg: "bg-fc-navy-50   border-fc-navy-100"   },
-  gons:  { name: "ГОНС",                                   color: "text-fc-blue-700",   bg: "bg-fc-blue-50   border-fc-blue-300"   },
+const LEVEL_META: Record<string, { name: string; accent: string; icon: string }> = {
+  do:    { name: "Дошкольное образование",             accent: "#5b9ad6", icon: "#5b9ad6" },
+  dopo:  { name: "Дополнительное образование",          accent: "#4da8d8", icon: "#4da8d8" },
+  so:    { name: "Среднее образование",                 accent: "#00a6ca", icon: "#00a6ca" },
+  tippo: { name: "ТиППО",                               accent: "#7596b9", icon: "#7596b9" },
+  vipo:  { name: "Высшее и послевузовское образование", accent: "#c248c4", icon: "#c248c4" },
+  obsh:  { name: "Общежития",                           accent: "#8ca0c8", icon: "#8ca0c8" },
+  gons:  { name: "ГОНС",                                accent: "#4da8d8", icon: "#4da8d8" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -66,7 +66,6 @@ export default function DataCatalogPage() {
   const [search, setSearch] = useState("");
   const [totalCatalog, setTotalCatalog] = useState<number | null>(null);
 
-  // Load levels on mount
   useEffect(() => {
     setLoadingLevels(true);
     client.get<{ levels: LevelItem[] }>("/data-catalog/levels")
@@ -106,12 +105,8 @@ export default function DataCatalogPage() {
       .finally(() => setLoadingFields(false));
   }, [selectedLevel]);
 
-  // Filter fields by search
   useEffect(() => {
-    if (!search.trim()) {
-      setFilteredFields(fields);
-      return;
-    }
+    if (!search.trim()) { setFilteredFields(fields); return; }
     const q = search.toLowerCase();
     setFilteredFields(fields.filter(f =>
       f.field_name.toLowerCase().includes(q) ||
@@ -128,30 +123,30 @@ export default function DataCatalogPage() {
     setSearch("");
   };
 
-  const meta = selectedLevel ? (LEVEL_META[selectedLevel] ?? { name: selectedLevel, color: "text-fc-navy-700", bg: "bg-fc-navy-50 border-fc-navy-200" }) : null;
+  const meta = selectedLevel ? (LEVEL_META[selectedLevel] ?? { name: selectedLevel, accent: "#00a6ca", icon: "#00a6ca" }) : null;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-fc-navy-800">
+          <h1 className="font-display text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
             Каталог данных
           </h1>
-          <p className="mt-1 text-sm text-fc-navy-400">
+          <p className="mt-1 text-sm" style={{ color: "var(--text-muted)" }}>
             {totalCatalog !== null
               ? `${totalCatalog.toLocaleString("ru-RU")} полей по ${levels.length} уровням образования`
               : "Загрузка каталога…"}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Database className="w-5 h-5 text-fc-navy-400" />
-          <span className="label-eyebrow text-fc-navy-400">Каталог данных</span>
+          <Database className="w-5 h-5" style={{ color: "var(--text-muted)" }} />
+          <span className="label-eyebrow">Каталог данных</span>
         </div>
       </div>
 
       {error && (
-        <div className="card border-danger/30 bg-danger/5 flex items-center gap-3 text-danger text-sm">
+        <div className="card flex items-center gap-3 text-sm p-4" style={{ border: "1px solid rgba(193,39,45,0.3)", background: "rgba(193,39,45,0.08)", color: "#e74c3c" }}>
           <X className="w-4 h-4 shrink-0" />
           {error}
           <button onClick={() => setError(null)} className="ml-auto"><X className="w-4 h-4" /></button>
@@ -161,15 +156,15 @@ export default function DataCatalogPage() {
       {/* Breadcrumb */}
       {selectedLevel && (
         <div className="flex items-center gap-1.5 text-sm">
-          <button onClick={resetLevel} className="text-fc-blue-600 hover:underline">
+          <button onClick={resetLevel} className="text-fc-blue-400 hover:underline">
             Уровни образования
           </button>
-          <ChevronRight className="w-3.5 h-3.5 text-fc-navy-400" />
-          <span className={meta?.color}>{meta?.name}</span>
+          <ChevronRight className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+          <span style={{ color: "var(--text-secondary)" }}>{meta?.name}</span>
           {selectedSection && (
             <>
-              <ChevronRight className="w-3.5 h-3.5 text-fc-navy-400" />
-              <span className="text-fc-navy-600">{selectedSection.section}</span>
+              <ChevronRight className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
+              <span style={{ color: "var(--text-secondary)" }}>{selectedSection.section}</span>
             </>
           )}
         </div>
@@ -179,37 +174,34 @@ export default function DataCatalogPage() {
       {!selectedLevel && (
         <>
           {loadingLevels ? (
-            <div className="flex items-center gap-2 text-fc-navy-400 text-sm">
+            <div className="flex items-center gap-2 text-sm" style={{ color: "var(--text-muted)" }}>
               <Loader2 className="w-4 h-4 animate-spin" /> Загрузка уровней…
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {levels.map(lvl => {
-                const m = LEVEL_META[lvl.education_level] ?? {
-                  name: lvl.education_level,
-                  color: "text-fc-navy-700",
-                  bg: "bg-fc-navy-50 border-fc-navy-200",
-                };
+                const m = LEVEL_META[lvl.education_level] ?? { name: lvl.education_level, accent: "#00a6ca", icon: "#00a6ca" };
                 return (
                   <button
                     key={lvl.education_level}
                     onClick={() => selectLevel(lvl.education_level)}
-                    className={`card card-hover text-left border ${m.bg}`}
+                    className="card card-hover text-left p-5"
+                    style={{ borderLeft: `3px solid ${m.accent}` }}
                   >
                     <div className="flex items-start justify-between mb-3">
-                      <BookOpen className={`w-5 h-5 ${m.color}`} />
-                      <span className="label-eyebrow text-fc-navy-400">{lvl.code}</span>
+                      <BookOpen className="w-5 h-5" style={{ color: m.icon }} />
+                      <span className="label-eyebrow">{lvl.code}</span>
                     </div>
-                    <p className={`font-display font-semibold text-sm leading-snug mb-3 ${m.color}`}>
+                    <p className="font-display font-semibold text-sm leading-snug mb-3" style={{ color: "var(--text-primary)" }}>
                       {m.name}
                     </p>
-                    <div className="flex items-center justify-between text-xs text-fc-navy-500">
-                      <span className="tabular-nums font-semibold text-base text-fc-navy-700">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="tabular-nums font-bold text-base" style={{ color: "var(--text-primary)" }}>
                         {lvl.total_fields.toLocaleString("ru-RU")}
                       </span>
-                      <span>{lvl.sections} разд.</span>
+                      <span style={{ color: "var(--text-muted)" }}>{lvl.sections} разд.</span>
                     </div>
-                    <p className="text-xs text-fc-navy-400 mt-0.5">полей</p>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>полей</p>
                   </button>
                 );
               })}
@@ -220,29 +212,32 @@ export default function DataCatalogPage() {
 
       {/* Sections list */}
       {selectedLevel && !selectedSection && (
-        <div className="card">
+        <div className="card p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Layers className={`w-4 h-4 ${meta?.color}`} />
-            <h2 className="font-display font-semibold text-fc-navy-700">Разделы</h2>
+            <Layers className="w-4 h-4" style={{ color: meta?.icon }} />
+            <h2 className="font-display font-semibold" style={{ color: "var(--text-primary)" }}>Разделы</h2>
           </div>
           {loadingSections ? (
-            <div className="flex items-center gap-2 text-fc-navy-400 text-sm py-4">
+            <div className="flex items-center gap-2 text-sm py-4" style={{ color: "var(--text-muted)" }}>
               <Loader2 className="w-4 h-4 animate-spin" /> Загрузка разделов…
             </div>
           ) : (
-            <div className="divide-y divide-fc-navy-100">
+            <div>
               {sections.map(sec => (
                 <button
                   key={sec.section_slug}
                   onClick={() => selectSection(sec)}
-                  className="w-full flex items-center justify-between py-3 text-left hover:bg-fc-navy-50 -mx-1 px-1 rounded transition-colors"
+                  className="w-full flex items-center justify-between py-3 text-left -mx-1 px-1 rounded transition-colors"
+                  style={{ borderBottom: "1px solid var(--border-subtle)" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,168,202,0.05)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <span className="text-sm text-fc-navy-700">{sec.section}</span>
+                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{sec.section}</span>
                   <div className="flex items-center gap-2">
-                    <span className="pill bg-fc-navy-100 text-fc-navy-600 tabular-nums">
+                    <span className="pill tabular-nums" style={{ background: "rgba(0,168,202,0.12)", color: "#00a6ca" }}>
                       {sec.field_count}
                     </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-fc-navy-400" />
+                    <ChevronRight className="w-3.5 h-3.5" style={{ color: "var(--text-muted)" }} />
                   </div>
                 </button>
               ))}
@@ -253,14 +248,14 @@ export default function DataCatalogPage() {
 
       {/* Fields table */}
       {selectedSection && (
-        <div className="card">
+        <div className="card p-5">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <FileText className="w-4 h-4 text-fc-navy-500" />
-              <h2 className="font-display font-semibold text-fc-navy-700">
+              <FileText className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+              <h2 className="font-display font-semibold" style={{ color: "var(--text-primary)" }}>
                 {selectedSection.section}
               </h2>
-              <span className="pill bg-fc-navy-100 text-fc-navy-600 tabular-nums">
+              <span className="pill tabular-nums" style={{ background: "rgba(0,168,202,0.12)", color: "#00a6ca" }}>
                 {filteredFields.length} / {fields.length}
               </span>
             </div>
@@ -274,7 +269,7 @@ export default function DataCatalogPage() {
 
           {/* Search */}
           <div className="relative mb-4">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-fc-navy-400" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
             <input
               className="input pl-9"
               placeholder="Поиск по названию или источнику…"
@@ -282,14 +277,14 @@ export default function DataCatalogPage() {
               onChange={e => setSearch(e.target.value)}
             />
             {search && (
-              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-fc-navy-400 hover:text-fc-navy-700">
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }}>
                 <X className="w-4 h-4" />
               </button>
             )}
           </div>
 
           {loadingFields ? (
-            <div className="flex items-center gap-2 text-fc-navy-400 text-sm py-4">
+            <div className="flex items-center gap-2 text-sm py-4" style={{ color: "var(--text-muted)" }}>
               <Loader2 className="w-4 h-4 animate-spin" /> Загрузка полей…
             </div>
           ) : (
@@ -307,20 +302,24 @@ export default function DataCatalogPage() {
                 <tbody>
                   {filteredFields.map((f, i) => (
                     <tr key={f.id}>
-                      <td className="tabular-nums text-fc-navy-400 text-xs">{i + 1}</td>
-                      <td className="text-sm text-fc-navy-800">{f.field_name}</td>
-                      <td className="text-xs text-fc-navy-500">{f.source ?? "—"}</td>
-                      <td className="text-xs text-fc-navy-500">{f.frequency ?? "—"}</td>
+                      <td className="tabular-nums text-xs" style={{ color: "var(--text-muted)" }}>{i + 1}</td>
+                      <td className="text-sm">{f.field_name}</td>
+                      <td className="text-xs">{f.source ?? "—"}</td>
+                      <td className="text-xs">{f.frequency ?? "—"}</td>
                       <td className="text-xs">
-                        {f.data_type_code === "1" && <span className="pill bg-fc-cyan-50 text-fc-cyan-700">первичные</span>}
-                        {f.data_type_code === "2" && <span className="pill bg-fc-purple-50 text-fc-purple-700">расчётные</span>}
-                        {!f.data_type_code && <span className="text-fc-navy-400">—</span>}
+                        {f.data_type_code === "1" && (
+                          <span className="pill" style={{ background: "rgba(0,168,202,0.12)", color: "#00a6ca" }}>первичные</span>
+                        )}
+                        {f.data_type_code === "2" && (
+                          <span className="pill" style={{ background: "rgba(128,30,130,0.15)", color: "#c248c4" }}>расчётные</span>
+                        )}
+                        {!f.data_type_code && <span style={{ color: "var(--text-muted)" }}>—</span>}
                       </td>
                     </tr>
                   ))}
                   {filteredFields.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="text-center text-fc-navy-400 text-sm py-8">
+                      <td colSpan={5} className="text-center text-sm py-8" style={{ color: "var(--text-muted)" }}>
                         Ничего не найдено
                       </td>
                     </tr>

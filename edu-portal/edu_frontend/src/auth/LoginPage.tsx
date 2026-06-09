@@ -52,7 +52,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex bg-white">
+    <div className="min-h-screen flex" style={{ background: "var(--surface-dark)" }}>
 
       {/* ═══════════════════════════════════════════════════════════════════
           LEFT PANEL — brand identity, dark navy with pattern
@@ -97,7 +97,7 @@ export default function LoginPage() {
           </div>
 
           <p className="mt-6 text-[10px] text-white/40 uppercase tracking-fc-eyebrow">
-            © 2026 АО «Финансовый центр»
+            © {new Date().getFullYear()} АО «Финансовый центр»
           </p>
         </div>
       </aside>
@@ -105,16 +105,17 @@ export default function LoginPage() {
       {/* ═══════════════════════════════════════════════════════════════════
           RIGHT PANEL — login form
           ═══════════════════════════════════════════════════════════════════ */}
-      <main className="flex-1 flex flex-col">
+      <main className="flex-1 flex flex-col" style={{ background: "var(--surface-dark)" }}>
 
         {/* Mobile-only top bar with brand */}
-        <div className="lg:hidden bg-fc-navy-700 px-5 py-4 flex items-center gap-2.5">
+        <div className="lg:hidden px-5 py-4 flex items-center gap-2.5"
+             style={{ background: "var(--surface-card)", borderBottom: "1px solid var(--border-subtle)" }}>
           <Logo variant="white" className="w-7 h-7" />
           <div>
             <p className="font-display font-extrabold text-sm text-white uppercase tracking-fc-tight leading-none">
               Финансовый центр
             </p>
-            <p className="text-[9px] text-white/60 uppercase tracking-fc-eyebrow mt-0.5">
+            <p className="text-[9px] text-white/50 uppercase tracking-fc-eyebrow mt-0.5">
               ЕДУ Мониторинг
             </p>
           </div>
@@ -125,10 +126,11 @@ export default function LoginPage() {
 
             <div className="mb-8">
               <p className="label-eyebrow">Вход в систему</p>
-              <h2 className="mt-2 font-display font-extrabold text-3xl text-fc-navy-900 tracking-fc-tight">
+              <h2 className="mt-2 font-display font-extrabold text-3xl tracking-fc-tight"
+                  style={{ color: "var(--text-primary)" }}>
                 Авторизация
               </h2>
-              <p className="mt-2 text-sm text-slate-500">
+              <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
                 Используйте корпоративные учётные данные
               </p>
             </div>
@@ -163,7 +165,10 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setShowPwd(!showPwd)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-700"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 transition-colors"
+                    style={{ color: "var(--text-muted)" }}
+                    onMouseEnter={e => (e.currentTarget.style.color = "var(--text-secondary)")}
+                    onMouseLeave={e => (e.currentTarget.style.color = "var(--text-muted)")}
                     tabIndex={-1}
                   >
                     {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -172,9 +177,10 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-red-50 border border-red-200">
+                <div className="flex items-start gap-2 p-3 rounded-lg"
+                     style={{ background: "rgba(193,39,45,0.1)", border: "1px solid rgba(193,39,45,0.3)" }}>
                   <AlertTriangle className="w-4 h-4 text-danger shrink-0 mt-0.5" />
-                  <p className="text-xs text-red-800">{error}</p>
+                  <p className="text-xs text-danger">{error}</p>
                 </div>
               )}
 
@@ -194,8 +200,8 @@ export default function LoginPage() {
               </button>
             </form>
 
-            <div className="mt-8 pt-6 border-t border-slate-100">
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+            <div className="mt-8 pt-6" style={{ borderTop: "1px solid var(--border-subtle)" }}>
+              <p className="text-[11px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
                 Платформа предназначена для уполномоченных пользователей.
                 Действия фиксируются в журнале аудита системы.
                 По вопросам доступа обращайтесь к администратору организации.
@@ -204,11 +210,12 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <footer className="border-t border-slate-100 px-6 py-3 flex items-center justify-between">
-          <p className="text-[10px] text-slate-400">
+        <footer className="px-6 py-3 flex items-center justify-between"
+                style={{ borderTop: "1px solid var(--border-subtle)" }}>
+          <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
             v1.0 · {new Date().getFullYear()}
           </p>
-          <p className="text-[10px] text-slate-400 hidden sm:block">
+          <p className="text-[10px] hidden sm:block" style={{ color: "var(--text-muted)" }}>
             АО «Финансовый центр» · Astana, Kazakhstan
           </p>
         </footer>
