@@ -4,10 +4,54 @@ import { motion } from "framer-motion";
 import { ChevronDown, ChevronUp, ArrowUpDown } from "lucide-react";
 import { staggerContainer } from "@/lib/animations";
 import { useApi, useRegions } from "@/hooks/useApi";
-import { Loader, ErrorBox, StatCard, PageHeader } from "@/components/ui";
+import { Loader, ErrorBox, PageHeader } from "@/components/ui"; // Удален StatCard
 import RegionalAnalytics from "@/features/transparency/RegionalAnalytics";
 
 const ChevronDownIcon = ChevronDown;
+
+// --- Новые компоненты для блоков оценки и KPI-ячеек ---
+interface AssessmentBlockCardProps {
+  title: string;
+  subtitle: string;
+  value: string;
+  colorClass: string; // Tailwind class for border and text color, e.g., "border-emerald-500 text-emerald-500"
+}
+
+function AssessmentBlockCard({ title, subtitle, value, colorClass }: AssessmentBlockCardProps) {
+  return (
+    <div className={`p-5 bg-white rounded-2xl border ${colorClass} shadow-md flex items-center justify-between`}>
+      <div>
+        <p className="font-semibold text-slate-800 mb-0.5">{title}</p>
+        <p className="text-sm text-gray-500">{subtitle}</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className={`text-3xl font-bold ${colorClass}`}>{value}</span>
+        <ChevronDownIcon className={`w-5 h-5 ${colorClass}`} />
+      </div>
+    </div>
+  );
+}
+
+interface KpiCellProps {
+  value: string | number | null;
+  isKeyMetric?: boolean;
+  blockColorClass?: string; // e.g., "bg-emerald-500 text-white"
+  format?: (v: number | null) => string;
+}
+
+function KpiCell({ value, isKeyMetric = false, blockColorClass = "", format = fmt }: KpiCellProps) {
+  const formattedValue = value === null || value === undefined ? "—" : format(value as number);
+
+  if (isKeyMetric) {
+    return (
+      <div className={`inline-block px-4 py-2 rounded-xl font-bold ${blockColorClass}`}>
+        {formattedValue}
+      </div>
+    );
+  }
+  return <span className="text-gray-800">{formattedValue}</span>;
+}
+// --- Конец новых компонентов ---
 
 export const ORG_TYPE_RU: Record<number, string> = {
   1: "Дошкольное",
@@ -59,12 +103,20 @@ type SortKey = keyof TransparencyOrg;
 
 export function fmt(v: number | null, digits = 0): string {
   if (v === null || v === undefined) return "—";
-  return v.toLocaleString("ru-RU", { maximumFractionDigits: digits });
+  return v.toLocaleString("ru-KZ", { maximumFractionDigits: digits });
 }
 export function fmtM(v: number | null): string {
   if (v === null || v === undefined) return "—";
-  return (v / 1_000_000_000).toFixed(1) + " млрд ₸";
+  if (v >= 1_000_000_000) return `${(v / 1_000_000_000).toFixed(1)} млрд ₸`;
+  if (v >= 1_000_000)     return `${(v / 1_000_000).toFixed(0)} млн ₸`;
+  return `${fmt(Math.round(v))} ₸`;
 }
+
+// Форматирование для KpiCell, добавляющее "~"
+const fmtKpiValue = (v: number | null): string => {
+  if (v === null || v === undefined) return "—";
+  return `~${fmt(v, 0)}`; // Округляем до целых для значений KPI в шапке
+};
 
 export function TransparencyPage() {
   // Фильтры приходят из карты через коллбэк
@@ -118,16 +170,14 @@ export function TransparencyPage() {
 
   const SortTh = ({ k, children }: { k: SortKey; children: React.ReactNode }) => (
     <th
-      className="cursor-pointer select-none transition-colors"
-      onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
-      onMouseLeave={e => (e.currentTarget.style.background = "")}
+      className="cursor-pointer select-none text-center" // Убраны стили наведения, добавлено центрирование
       onClick={() => toggleSort(k)}
     >
-      <div className="flex items-center gap-1">
+      <div className="flex items-center justify-center gap-1 text-white font-bold"> {/* Изменен цвет текста на белый */}
         {children}
         {sortKey === k
-          ? (sortAsc ? <ChevronUp className="w-3 h-3 text-fc-blue-500" /> : <ChevronDownIcon className="w-3 h-3 text-fc-blue-500" />)
-          : <ArrowUpDown className="w-3 h-3 text-fc-steel-300" />}
+          ? (sortAsc ? <ChevronUp className="w-3 h-3 text-white" /> : <ChevronDownIcon className="w-3 h-3 text-white" />)
+          : <ArrowUpDown className="w-3 h-3 text-gray-400" />}
       </div>
     </th>
   );
