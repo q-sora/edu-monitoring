@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo } from "react";
 import { 
   Building, GraduationCap, Users, Wallet, BarChart3, LineChart as LineChartIcon,
   Search, X, ChevronDown, Activity, TrendingUp, Info
@@ -46,51 +46,29 @@ interface Organisation {
   region_id: number;
 }
 
-interface OrgType {
-  id: number;
-  code: string;
-  name_ru: string;
-}
 
 export default function EduLevelPage({ level }: { level: EduLevel }) {
   const config = LEVEL_CONFIG[level];
   const { user } = useAuth();
   const regions = useRegions();
   
-  // Persist selectedOrgId in localStorage
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(() => {
-    // If user is data_entry, they are locked to their org
-    if (user?.role === "data_entry" && user.org_id) return user.org_id;
-    return localStorage.getItem(`selectedOrg_${level}`);
-  });
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(
+    user?.role === "data_entry" && user.org_id ? user.org_id : null
+  );
 
   const [activeTab, setActiveTab] = useState(config.tabs[0]);
 
-  // Sync with localStorage
-  useEffect(() => {
-    if (selectedOrgId && user?.role !== "data_entry") {
-      localStorage.setItem(`selectedOrg_${level}`, selectedOrgId);
-    }
-  }, [selectedOrgId, level, user?.role]);
-
   // API calls
-  const { data: orgTypes } = useApi<OrgType[]>("/admin/references/org-types");
-  const { data: allOrgs, loading: loadingOrgs } = useApi<Organisation[]>("/admin/organisations");
+  const { data: allOrgsResp, loading: loadingOrgs } = useApi<{ items: Organisation[]; total: number }>("/admin/organisations?limit=500");
+  const allOrgs = allOrgsResp?.items ?? null;
 
-  // Mapping org_type_id -> code (slug)
-  const orgTypeSlugById = useMemo(() => {
-    const map: Record<number, string> = {};
-    orgTypes?.forEach(t => { map[t.id] = t.code; });
-    return map;
-  }, [orgTypes]);
-
-  // Filter orgs for this level
+  // Filter orgs for this level by org_type_id
   const levelOrgs = useMemo(() => {
-    if (!allOrgs || !orgTypes) return [];
-    return allOrgs.filter(org => 
-      config.orgTypeSlugs.includes(orgTypeSlugById[org.org_type_id])
+    if (!allOrgs) return [];
+    return allOrgs.filter(org =>
+      (config.orgTypeIds as readonly number[]).includes(org.org_type_id)
     );
-  }, [allOrgs, orgTypeSlugById, config.orgTypeSlugs]);
+  }, [allOrgs, config.orgTypeIds]);
 
   const selectedOrg = useMemo(() => 
     levelOrgs.find(o => o.id === selectedOrgId), 
@@ -98,12 +76,15 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
   );
 
   // Data for charts and KPIs
-  const { data: contingentRecords, loading: loadingC } = useApi<any[]>(
+  const { data: contingentResp, loading: loadingC } = useApi<{ items: any[]; total: number }>(
     selectedOrgId ? `/organisations/${selectedOrgId}/contingent` : null
   );
-  const { data: financeRecords, loading: loadingF } = useApi<any[]>(
+  const contingentRecords = contingentResp?.items ?? null;
+
+  const { data: financeResp, loading: loadingF } = useApi<{ items: any[]; total: number }>(
     selectedOrgId ? `/organisations/${selectedOrgId}/finance` : null
   );
+  const financeRecords = financeResp?.items ?? null;
 
   // KPI Calculations
   const kpis = useMemo(() => {
@@ -192,13 +173,25 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
         )}
       </div>
 
-      {!selectedOrgId ? (
-        <EmptyState 
-          title="Организация не выбрана" 
+      {loadingOrgs && !allOrgs && <Loader />}
+
+      {!loadingOrgs && !selectedOrgId && levelOrgs.length === 0 && (
+        <EmptyState
+          title="Организации не найдены"
+          hint="По данному уровню образования нет организаций в системе. Добавьте их через раздел «Организации»."
+          icon={Building}
+        />
+      )}
+
+      {!loadingOrgs && !selectedOrgId && levelOrgs.length > 0 && (
+        <EmptyState
+          title="Организация не выбрана"
           hint="Используйте селектор выше, чтобы просмотреть показатели и формы ввода"
           icon={Building}
         />
-      ) : (
+      )}
+
+      {selectedOrgId && (
         <>
           {/* ЗОНА B: KPI-карточки */}
           {(loadingC || loadingF) ? (
