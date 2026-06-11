@@ -81,10 +81,11 @@ function featureToD(feat: GeoFeature): string {
 }
 
 // ── Цвета ────────────────────────────────────────────────────────────────────
+// Обновляем цвета для карты, чтобы они лучше сочетались со светлым фоном и общей палитрой
 function lerpColor(ratio: number): string {
-  const r = Math.round(0x29 + (0x00 - 0x29) * ratio);
-  const g = Math.round(0x66 + (0xa6 - 0x66) * ratio);
-  const b = Math.round(0x95 + (0xca - 0x95) * ratio);
+  const r = Math.round(0x87 + (0x00 - 0x87) * ratio); // От светлого сине-зеленого до акцентного синего
+  const g = Math.round(0xc1 + (0xa6 - 0xc1) * ratio);
+  const b = Math.round(0xd5 + (0xca - 0xd5) * ratio);
   return `rgb(${r},${g},${b})`;
 }
 
@@ -96,13 +97,13 @@ function regionFill(
   selected: number | null,
   hovered: number | null,
 ): string {
-  if (selected === regionId && regionId !== null) return "#00a6ca";
-  if (hovered  === regionId && regionId !== null) return "#4dc8e8";
-  if (!data || regionId === null) return "#296695";
+  if (selected === regionId && regionId !== null) return "#00a6ca"; // Выбранный регион
+  if (hovered  === regionId && regionId !== null) return "#4dc8e8"; // Наведенный регион
+  if (!data || regionId === null) return "#e0f2f7"; // Фоновый цвет для отсутствующих данных (светлый)
   const stat = data[String(regionId)];
-  if (!stat || max === 0) return "#296695";
+  if (!stat || max === 0) return "#e0f2f7"; // Фоновый цвет
   const val = stat[metric];
-  if (val === 0) return "#296695";
+  if (val === 0) return "#e0f2f7"; // Фоновый цвет для нулевых значений
   return lerpColor(Math.min(val / max, 1));
 }
 
@@ -133,31 +134,6 @@ export default function RegionalAnalytics({ onFilterChange }: RegionalAnalyticsP
   const [geoFeatures, setGeoFeatures] = useState<GeoFeature[]>([]);
   const [geoError, setGeoError]   = useState(false);
 
-  // Обновляем цвета для карты, чтобы они лучше сочетались со светлым фоном и общей палитрой
-  function lerpColor(ratio: number): string {
-    const r = Math.round(0x87 + (0x00 - 0x87) * ratio); // От светлого сине-зеленого до акцентного синего
-    const g = Math.round(0xc1 + (0xa6 - 0xc1) * ratio);
-    const b = Math.round(0xd5 + (0xca - 0xd5) * ratio);
-    return `rgb(${r},${g},${b})`;
-  }
-
-  function regionFill(
-    regionId: number | null,
-    data: RegionalData | null,
-    metric: MetricKey,
-    max: number,
-    selected: number | null,
-    hovered: number | null,
-  ): string {
-    if (selected === regionId && regionId !== null) return "#00a6ca"; // Выбранный регион
-    if (hovered  === regionId && regionId !== null) return "#4dc8e8"; // Наведенный регион
-    if (!data || regionId === null) return "#e0f2f7"; // Фоновый цвет для отсутствующих данных (светлый)
-    const stat = data[String(regionId)];
-    if (!stat || max === 0) return "#e0f2f7"; // Фоновый цвет
-    const val = stat[metric];
-    if (val === 0) return "#e0f2f7"; // Фоновый цвет для нулевых значений
-    return lerpColor(Math.min(val / max, 1));
-  }
 
   useEffect(() => {
     fetch("/geo/kazakhstan.json")
