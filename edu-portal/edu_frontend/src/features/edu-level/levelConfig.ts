@@ -1,11 +1,12 @@
 
 // src/features/edu-level/levelConfig.ts
+// org_type_ids соответствуют БД: 1=ДО, 2=ДопО, 3=СО, 4=ТиППО, 5=ВиПО, 6=Общ-е, 7=ГОНС
 export const LEVEL_CONFIG = {
   do: {
     label: 'Дошкольное образование',
     shortLabel: 'ДДО',
     icon: '🏫',
-    orgTypeSlugs: ['ddo'],           // slug из org-types справочника
+    orgTypeIds: [1],
     tabs: ['contingent', 'finance', 'education'],
     accentColor: 'teal',
   },
@@ -13,7 +14,7 @@ export const LEVEL_CONFIG = {
     label: 'Общеобразовательные школы',
     shortLabel: 'Школы',
     icon: '🎒',
-    orgTypeSlugs: ['school'],
+    orgTypeIds: [3],
     tabs: ['contingent', 'finance', 'graduates', 'education'],
     accentColor: 'blue',
   },
@@ -21,7 +22,7 @@ export const LEVEL_CONFIG = {
     label: 'Дополнительное образование',
     shortLabel: 'Доп. обр.',
     icon: '🎨',
-    orgTypeSlugs: ['dopo'],
+    orgTypeIds: [2],
     tabs: ['contingent', 'finance', 'education'],
     accentColor: 'steel',
   },
@@ -29,7 +30,7 @@ export const LEVEL_CONFIG = {
     label: 'ТиПО / Колледжи',
     shortLabel: 'ТиПО',
     icon: '🔧',
-    orgTypeSlugs: ['tippo'],
+    orgTypeIds: [4],
     tabs: ['contingent', 'finance', 'science', 'graduates', 'education'],
     accentColor: 'steel',
   },
@@ -37,7 +38,7 @@ export const LEVEL_CONFIG = {
     label: 'ОВПО / Университеты',
     shortLabel: 'ОВПО',
     icon: '🎓',
-    orgTypeSlugs: ['vipo'],
+    orgTypeIds: [5],
     tabs: ['contingent', 'finance', 'science', 'graduates', 'education'],
     accentColor: 'purple',
   },
@@ -45,7 +46,7 @@ export const LEVEL_CONFIG = {
     label: 'ГОНС / Спец. организации',
     shortLabel: 'ГОНС',
     icon: '🏛',
-    orgTypeSlugs: ['gons'],
+    orgTypeIds: [7],
     tabs: ['contingent', 'finance', 'education'],
     accentColor: 'navy',
   },
