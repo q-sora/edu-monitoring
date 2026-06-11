@@ -40,10 +40,10 @@ const MODULE_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  approved:     "bg-success/15 text-success border-success/30",
-  under_review: "bg-warning/15 text-warning border-warning/30",
-  submitted:    "bg-fc-blue-500/15 text-fc-blue-300 border-fc-blue-500/30",
-  draft:        "bg-white/5 text-white/40 border-white/10",
+  approved:     "bg-success/15 text-success",
+  under_review: "bg-warning/15 text-warning",
+  submitted:    "bg-fc-blue-500/15 text-fc-blue-300",
+  draft:        "bg-gray-100 text-gray-700",
 };
 const STATUS_LABELS: Record<string, string> = {
   approved:     "Утверждено",
@@ -52,19 +52,28 @@ const STATUS_LABELS: Record<string, string> = {
   draft:        "Черновик",
 };
 
+const STATUS_CELL_COLORS: Record<string, string> = {
+  approved:     "text-success",
+  under_review: "text-warning",
+  submitted:    "text-fc-blue-500",
+  draft:        "text-gray-500",
+};
+
 export function CoverageCell({ status }: { status: string | null | undefined }) {
   if (!status) {
     return (
-      <div className="flex items-center justify-center h-8 rounded border border-dashed" style={{ borderColor: "var(--border-subtle)", background: "rgba(255,255,255,0.02)" }}>
-        <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>НЕТ</span>
+      <div className="flex items-center justify-center h-full">
+        <span className="text-sm font-bold text-gray-400">—</span>
       </div>
     );
   }
-  const cls = STATUS_COLORS[status] ?? "bg-white/5 text-white/40 border-white/10";
+  const colorClass = STATUS_CELL_COLORS[status] ?? "text-gray-500";
   const lbl = STATUS_LABELS[status] ?? status;
   return (
-    <div className={`flex items-center justify-center h-8 rounded border text-[10px] font-semibold uppercase tracking-wide ${cls}`}>
-      {lbl}
+    <div className="flex items-center justify-center h-full">
+      <span className={`text-sm font-bold uppercase ${colorClass}`}>
+        {lbl}
+      </span>
     </div>
   );
 }
@@ -106,7 +115,7 @@ export function CoveragePage() {
       />
 
       {/* ─── Фильтры ─── */}
-      <div className="card mb-4 px-4 py-3 flex flex-wrap gap-2 items-center">
+      <div className="rounded-2xl border border-gray-200 bg-white mb-4 px-4 py-3 flex flex-wrap gap-2 items-center">
         <select value={year} onChange={e => { setYear(Number(e.target.value)); resetPage(); }}
           className="input py-1.5 text-sm w-24">
           {[2025,2024,2023,2022,2021,2020].map(y => <option key={y} value={y}>{y}</option>)}
