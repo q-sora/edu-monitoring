@@ -144,7 +144,7 @@ export function CoveragePage() {
       {data && (
         <>
           {/* Summary strip */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5 p-5 bg-white rounded-2xl border border-gray-200">
             <StatCard accent="navy"  label="Организаций в фильтре" value={data.total ?? data.summary.orgs_total} hint="По выбранным условиям" />
             <StatCard accent="blue"  label="Ячеек заполнено" value={`${data.summary.cells_filled}/${data.summary.cells_total}`} hint="Из 5 модулей" />
             <StatCard accent="cyan"  label="Утверждено"     value={data.summary.cells_approved} hint="Записей approved" />
@@ -153,42 +153,40 @@ export function CoveragePage() {
           </div>
 
           {/* Legend */}
-          <div className="flex flex-wrap gap-3 mb-4">
+          <div className="flex flex-wrap gap-3 mb-4 p-4 bg-white rounded-2xl border border-gray-200">
             {Object.entries(STATUS_LABELS).map(([k, v]) => (
-              <div key={k} className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-xs font-semibold ${STATUS_COLORS[k]}`}>
+              <div key={k} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${STATUS_COLORS[k]}`}>
                 {v}
               </div>
             ))}
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-dashed text-xs font-semibold" style={{ borderColor: "var(--border-subtle)", color: "var(--text-muted)" }}>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
               НЕТ — данные не поданы
             </div>
           </div>
 
           {/* Matrix */}
-          <div className="card overflow-x-auto">
+          <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-                  <th className="px-4 py-3 text-left font-semibold min-w-[220px]" style={{ color: "var(--text-secondary)" }}>
+                <tr className="bg-gradient-to-r from-fc-blue-700 to-fc-blue-900">
+                  <th className="px-4 py-3 text-left font-bold min-w-[220px] text-white">
                     Организация
                   </th>
                   {modules.map(m => (
-                    <th key={m} className="px-3 py-3 text-center font-semibold min-w-[110px]" style={{ color: "var(--text-secondary)" }}>
+                    <th key={m} className="px-3 py-3 text-center font-bold min-w-[110px] text-white">
                       {MODULE_LABELS[m]}
                     </th>
                   ))}
-                  <th className="px-3 py-3 text-center font-semibold min-w-[80px]" style={{ color: "var(--text-secondary)" }}>
+                  <th className="px-3 py-3 text-center font-bold min-w-[80px] text-white">
                     Итого
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {data.organizations.map(org => (
-                  <tr key={org.id} className="transition-colors" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,168,202,0.05)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <tr key={org.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-4 py-2.5 max-w-[220px]">
-                      <p className="font-medium leading-snug truncate" style={{ color: "var(--text-primary)" }} title={org.name_ru}>{org.name_ru}</p>
+                      <p className="font-medium leading-snug truncate text-gray-800" title={org.name_ru}>{org.name_ru}</p>
                     </td>
                     {modules.map(m => (
                       <td key={m} className="px-3 py-2">
@@ -196,12 +194,12 @@ export function CoveragePage() {
                       </td>
                     ))}
                     <td className="px-3 py-2 text-center">
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold ${
+                      <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-xs font-bold ${
                         org.approved === org.total
                           ? "bg-success/15 text-success"
                           : org.approved > 0
                           ? "bg-warning/15 text-warning"
-                          : "bg-white/5 text-white/30"
+                          : "bg-gray-100 text-gray-700"
                       }`}>
                         {org.approved}/{org.total}
                       </span>
@@ -213,15 +211,15 @@ export function CoveragePage() {
 
             {/* Пагинация */}
             {data.total > limit && (
-              <div className="px-4 py-3 flex items-center justify-between text-xs" style={{ borderTop: "1px solid var(--border-subtle)", color: "var(--text-muted)" }}>
+              <div className="px-4 py-3 flex items-center justify-between text-xs text-gray-500 border-t border-gray-200 rounded-b-2xl">
                 <span>
                   {page * limit + 1}–{Math.min((page + 1) * limit, data.total)} из {data.total}
                 </span>
                 <div className="flex gap-1">
                   <button disabled={page === 0} onClick={() => setPage(p => Math.max(0, p - 1))}
-                    className="btn-ghost btn-sm">← Назад</button>
+                    className="btn-ghost btn-sm text-gray-600 hover:bg-gray-100">← Назад</button>
                   <button disabled={(page + 1) * limit >= data.total} onClick={() => setPage(p => p + 1)}
-                    className="btn-ghost btn-sm">Вперёд →</button>
+                    className="btn-ghost btn-sm text-gray-600 hover:bg-gray-100">Вперёд →</button>
                 </div>
               </div>
             )}
