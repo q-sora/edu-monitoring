@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useApi } from "@/hooks/useApi";
 import { useAuth } from "@/auth/AuthContext";
-import { Loader, PageHeader } from "@/components/ui";
+import { Loader, PageHeader, ErrorBox } from "@/components/ui";
 
 interface Organisation {
   id: string;
@@ -16,13 +16,14 @@ interface Organisation {
 
 // OrgPicker — shown to admins/superadmins who have no fixed org_id
 export function OrgPicker({ onSelect }: { onSelect: (id: string, name: string) => void }) {
-  const { data, loading } = useApi<{ items: Organisation[]; total: number }>(
+  const { data, loading, error } = useApi<{ items: Organisation[]; total: number }>(
     "/admin/organisations?limit=50",
   );
   return (
     <div className="card p-6 max-w-md mx-auto">
       <p className="label-eyebrow text-fc-navy-700 mb-3">Выберите организацию</p>
       {loading && <Loader />}
+      {error && <ErrorBox message={error} />}
       {data && (
         <div className="space-y-1 max-h-80 overflow-y-auto">
           {data.items.map(org => (

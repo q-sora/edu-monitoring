@@ -59,7 +59,7 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
   const [activeTab, setActiveTab] = useState(config.tabs[0]);
 
   // API calls
-  const { data: allOrgsResp, loading: loadingOrgs } = useApi<{ items: Organisation[]; total: number }>("/admin/organisations?limit=500");
+  const { data: allOrgsResp, loading: loadingOrgs, error: orgsError } = useApi<{ items: Organisation[]; total: number }>("/admin/organisations?limit=500");
   const allOrgs = allOrgsResp?.items ?? null;
 
   // Filter orgs for this level by org_type_id
@@ -174,8 +174,9 @@ export default function EduLevelPage({ level }: { level: EduLevel }) {
       </div>
 
       {loadingOrgs && !allOrgs && <Loader />}
+      {orgsError && <ErrorBox message={orgsError} />}
 
-      {!loadingOrgs && !selectedOrgId && levelOrgs.length === 0 && (
+      {!loadingOrgs && !orgsError && !selectedOrgId && levelOrgs.length === 0 && (
         <EmptyState
           title="Организации не найдены"
           hint="По данному уровню образования нет организаций в системе. Добавьте их через раздел «Организации»."

@@ -6,6 +6,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, LogOut, UserCircle, Menu, X } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
 import Logo from "@/components/brand/Logo";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 interface TabItem {
   to: string;
@@ -340,7 +341,9 @@ export function AppShell() {
             animate="enter"
             exit="exit"
           >
-            <Outlet />
+            <ErrorBoundary key={location.pathname}>
+              <Outlet />
+            </ErrorBoundary>
           </motion.div>
         </AnimatePresence>
       </main>

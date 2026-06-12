@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, GraduationCap, Wallet, FlaskConical, UsersRound, BookOpen } from "lucide-react";
 import { staggerContainer, staggerItem, fadeInUp } from "@/lib/animations";
 import { useApi } from "@/hooks/useApi";
-import { Loader } from "@/components/ui";
+import { Loader, ErrorBox } from "@/components/ui";
 import SupersetDashboard from "@/features/analytics/SupersetDashboard";
 import { PageHeader } from "@/components/ui";
 
@@ -34,7 +34,7 @@ function EmbeddedDashboard({ dash }: { dash: SupersetDash }) {
 
 export function SupersetSection() {
   const [activeDash, setActiveDash] = useState<SupersetDash | null>(null);
-  const { data: dashResp, loading } = useApi<{ result: SupersetDash[] }>("/admin/superset/dashboards");
+  const { data: dashResp, loading, error } = useApi<{ result: SupersetDash[] }>("/admin/superset/dashboards");
   const dashboards = dashResp?.result ?? [];
 
   if (activeDash) {
@@ -61,7 +61,8 @@ export function SupersetSection() {
         </a>
       </div>
       {loading && <Loader />}
-      {!loading && dashboards.length === 0 && (
+      {error && <ErrorBox message={error} />}
+      {!loading && !error && dashboards.length === 0 && (
         <div className="card p-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
           Дашборды Superset не настроены
         </div>
@@ -95,7 +96,7 @@ export function SupersetSection() {
 
 export function SupersetDashboardsPage() {
   const [activeDash, setActiveDash] = useState<SupersetDash | null>(null);
-  const { data: dashResp, loading } = useApi<{ result: SupersetDash[] }>("/admin/superset/dashboards");
+  const { data: dashResp, loading, error } = useApi<{ result: SupersetDash[] }>("/admin/superset/dashboards");
   const dashboards = dashResp?.result ?? [];
 
   return (
@@ -111,6 +112,8 @@ export function SupersetDashboardsPage() {
           ) : undefined
         }
       />
+
+      {error && <div className="mb-4"><ErrorBox message={error} /></div>}
 
       <AnimatePresence mode="wait">
         {activeDash === null ? (

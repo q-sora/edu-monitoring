@@ -8,6 +8,7 @@ import {
 } from "recharts";
 import client from "@/api/client";
 import { useApi } from "@/hooks/useApi";
+import { ErrorBox } from "@/components/ui";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -105,7 +106,7 @@ function fmt(v: number | null | undefined, decimals = 1): string {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function SpecialtyPanel({ assessmentId, onClose }: { assessmentId: number; onClose: () => void }) {
-  const { data, loading } = useApi<{ specialties: Specialty[] }>(
+  const { data, loading, error } = useApi<{ specialties: Specialty[] }>(
     `/college-assessment/${assessmentId}/specialties`,
     [assessmentId],
   );
@@ -122,6 +123,7 @@ function SpecialtyPanel({ assessmentId, onClose }: { assessmentId: number; onClo
           <Loader2 className="w-4 h-4 animate-spin" /> Загрузка…
         </div>
       )}
+      {error && <ErrorBox message={error} />}
 
       {data && data.specialties.length === 0 && (
         <p className="text-sm text-fc-steel-400 py-2">Специальности не найдены</p>
@@ -326,7 +328,7 @@ function RatingsTab() {
   if (regionFilter) params.set("region", regionFilter);
   if (ownershipFilter) params.set("ownership", ownershipFilter);
 
-  const { data, loading } = useApi<{ items: CollegeRating[]; total: number }>(
+  const { data, loading, error } = useApi<{ items: CollegeRating[]; total: number }>(
     `/college-assessment/ratings?${params}`,
     [yearFilter, regionFilter, ownershipFilter, page],
   );
@@ -371,6 +373,7 @@ function RatingsTab() {
           <Loader2 className="w-5 h-5 animate-spin" /> Загрузка рейтинга…
         </div>
       )}
+      {error && <ErrorBox message={error} />}
 
       {data && (
         <>
@@ -480,7 +483,7 @@ function RatingsTab() {
 function RegionsTab() {
   const [yearFilter, setYearFilter] = useState("");
   const params = yearFilter ? `?period_year=${yearFilter}` : "";
-  const { data, loading } = useApi<{ by_region: RegionStat[] }>(
+  const { data, loading, error } = useApi<{ by_region: RegionStat[] }>(
     `/college-assessment/stats/overview${params}`,
     [yearFilter],
   );
@@ -509,6 +512,7 @@ function RegionsTab() {
           <Loader2 className="w-5 h-5 animate-spin" /> Загрузка…
         </div>
       )}
+      {error && <ErrorBox message={error} />}
 
       {data && data.by_region.length === 0 && (
         <div className="card text-center py-12 text-fc-steel-400">
@@ -587,7 +591,7 @@ function RegionsTab() {
 function SpecialtiesTab() {
   const [yearFilter, setYearFilter] = useState("");
   const params = yearFilter ? `?period_year=${yearFilter}&limit=20` : "?limit=20";
-  const { data, loading } = useApi<{ items: TopSpecialty[] }>(
+  const { data, loading, error } = useApi<{ items: TopSpecialty[] }>(
     `/college-assessment/top-specialties/employment${params}`,
     [yearFilter],
   );
@@ -609,6 +613,7 @@ function SpecialtiesTab() {
           <Loader2 className="w-5 h-5 animate-spin" /> Загрузка…
         </div>
       )}
+      {error && <ErrorBox message={error} />}
 
       {data && (
         <div className="card">

@@ -104,9 +104,12 @@ export default function SupersetDashboard({
       return resp.data.token;
     };
 
+    const supersetDomain =
+      import.meta.env.VITE_SUPERSET_DOMAIN ?? window.location.origin;
+
     embedDashboard({
       id: embeddedUuid,
-      supersetDomain: window.location.origin,
+      supersetDomain,
       mountPoint: el,
       fetchGuestToken: fetchToken,
       dashboardUiConfig: {
