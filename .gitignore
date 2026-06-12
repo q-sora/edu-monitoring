@@ -75,3 +75,8 @@ Thumbs.db
 
 # ─── Alembic generated (keep migrations/, ignore cache) ──────────────────────
 migrations/__pycache__/
+.aider*
+
+*.env
+.env.*
+docker.env

@@ -51,6 +51,29 @@ function KpiCell({ value, isKeyMetric = false, blockColorClass = "", format = fm
   }
   return <span className="text-gray-800">{formattedValue}</span>;
 }
+
+interface StatCardProps {
+  accent: "navy" | "blue" | "cyan" | "steel";
+  label: string;
+  value: string;
+  hint: string;
+}
+
+function StatCard({ accent, label, value, hint }: StatCardProps) {
+  const accentColors = {
+    navy: "border-slate-200 text-slate-800",
+    blue: "border-blue-100 text-blue-600",
+    cyan: "border-cyan-100 text-cyan-600",
+    steel: "border-gray-200 text-gray-600",
+  };
+  return (
+    <div className={`p-4 bg-white rounded-2xl border ${accentColors[accent] || "border-gray-200"} shadow-md`}>
+      <p className="text-xs font-semibold text-gray-500 mb-1">{label}</p>
+      <p className="text-2xl font-bold mb-1">{value}</p>
+      <p className="text-[10px] text-gray-400 leading-none">{hint}</p>
+    </div>
+  );
+}
 // --- Конец новых компонентов ---
 
 export const ORG_TYPE_RU: Record<number, string> = {

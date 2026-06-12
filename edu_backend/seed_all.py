@@ -82,13 +82,12 @@ async def seed():
                 })
                 
                 # 6. Заполняем Науку
-                # Используем только те колонки, которые точно есть (из прошлых ошибок)
                 await session.execute(text("""
-                    INSERT INTO science_activity (org_id, period_year, grant_funding_amount)
-                    VALUES (:org_id, 2024, :money)
+                    INSERT INTO science_activity (org_id, period_year, grants_json)
+                    VALUES (:org_id, 2024, :grants_data)
                 """), {
                     "org_id": org_id,
-                    "money": 5000000 * i
+                    "grants_data": f'{{"total_amount": {5000000 * i}, "currency": "KZT", "count": {2 * i}}}'
                 })
 
             await session.commit()
