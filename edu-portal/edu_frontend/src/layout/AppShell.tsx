@@ -18,7 +18,7 @@ interface TabItem {
 const TAB_GROUPS: TabItem[][] = [
   // Обзор
   [
-    { to: "/dashboard", label: "Дашборд", color: "#19286D", show: r => ["superadmin","admin","management","data_entry"].includes(r) },
+    { to: "/dashboard", label: "Дашборд", color: "#60A5FA", show: r => ["superadmin","admin","management","data_entry"].includes(r) },
   ],
   // Уровни образования
   [
@@ -40,8 +40,8 @@ const TAB_GROUPS: TabItem[][] = [
   ],
   // Администрирование
   [
-    { to: "/admin/organisations",    label: "Организации",  color: "#19286D", show: r => ["superadmin","admin"].includes(r) },
-    { to: "/admin/users",            label: "Пользователи", color: "#19286D", show: r => ["superadmin","admin"].includes(r) },
+    { to: "/admin/organisations",    label: "Организации",  color: "#60A5FA", show: r => ["superadmin","admin"].includes(r) },
+    { to: "/admin/users",            label: "Пользователи", color: "#60A5FA", show: r => ["superadmin","admin"].includes(r) },
     { to: "/admin/approvals",        label: "Согласования", color: "#0068B4", show: r => ["superadmin","admin"].includes(r) },
     { to: "/admin/integrations",     label: "Интеграции",   color: "#296695", show: r => ["superadmin","admin"].includes(r) },
     { to: "/admin/universal-import", label: "Импорт",       color: "#00A6CA", show: r => ["superadmin","admin"].includes(r) },
