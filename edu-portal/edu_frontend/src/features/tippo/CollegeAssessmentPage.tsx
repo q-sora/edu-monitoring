@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import {
   AlertTriangle, Building2, CheckCircle2, ChevronDown, ChevronUp,
-  Download, FileUp, Loader2, MapPin, Trophy, Upload, Users, BarChart2,
+  FileUp, Loader2, MapPin, Trophy, Upload,
 } from "lucide-react";
 import AstanaRatingTab from "./AstanaRatingTab";
 import {
@@ -676,16 +676,6 @@ function SpecialtiesTab() {
 // Main component
 // ─────────────────────────────────────────────────────────────────────────────
 
-const TABS = [
-  { key: "astana",       label: "Рейтинг Астаны",   icon: BarChart2,  roles: null },
-  { key: "ratings",      label: "Рейтинг",          icon: Trophy,     roles: null },
-  { key: "regions",      label: "По регионам",      icon: MapPin,     roles: null },
-  { key: "specialties",  label: "Специальности",    icon: Building2,  roles: null },
-  { key: "methodology",  label: "Методология",      icon: Trophy,     roles: null },
-  { key: "import",       label: "Загрузить файл",   icon: Upload,     roles: ["superadmin", "admin"] },
-] as const;
-
-type TabKey = typeof TABS[number]["key"];
 
 function MethodologyTab() {
   return (
@@ -766,43 +756,6 @@ function MethodologyTab() {
 }
 
 
-export default function CollegeAssessmentPage({ userRole }: { userRole?: string }) {
-  const canImport = !userRole || ["superadmin", "admin"].includes(userRole);
-  const [activeTab, setActiveTab] = useState<TabKey>("astana");
-
-  const visibleTabs = TABS.filter(t => !t.roles || !userRole || t.roles.includes(userRole as any));
-
-  return (
-    <div className="space-y-5">
-      <div className="flex gap-1 border-b border-fc-navy-100 overflow-x-auto scrollbar-none">
-        {visibleTabs.map(t => {
-          const Icon = t.icon;
-          const active = activeTab === t.key;
-          return (
-            <button
-              key={t.key}
-              onClick={() => setActiveTab(t.key)}
-              className={`flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 transition-colors
-                ${active
-                  ? "border-fc-navy-700 text-fc-navy-800"
-                  : "border-transparent text-fc-steel-500 hover:text-fc-navy-700 hover:border-fc-navy-200"}`}
-            >
-              <Icon className="w-4 h-4" />
-              {t.label}
-            </button>
-          );
-        })}
-      </div>
-
-      <div>
-        {activeTab === "import"      && <ImportTab />}
-        {activeTab === "ratings"     && <RatingsTab />}
-        {activeTab === "astana"      && <AstanaRatingTab />}
-        {activeTab === "regions"     && <RegionsTab />}
-        {activeTab === "specialties" && <SpecialtiesTab />}
-        {activeTab === "methodology" && <MethodologyTab />}
-      </div>
-
-    </div>
-  );
+export default function CollegeAssessmentPage({ userRole: _userRole }: { userRole?: string }) {
+  return <AstanaRatingTab />;
 }

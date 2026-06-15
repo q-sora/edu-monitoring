@@ -1,5 +1,6 @@
 // src/features/tippo/AstanaRatingTab.tsx
 import React, { useState, useMemo } from "react";
+import { PageHeader } from "@/components/ui";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -342,43 +343,40 @@ export default function AstanaRatingTab() {
 
   return (
     <div className="space-y-4">
-      {/* Header + filters */}
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <PageHeader
+        title="Рейтинг колледжей г. Астана"
+        subtitle={`${ASTANA_DATA.length} организации ТиПО · Нормализованная шкала 0–100 (лучший = 100)`}
+      />
+
+      {/* Filters */}
+      <div className="flex flex-wrap gap-3 items-end">
         <div>
-          <h2 className="text-lg font-display font-bold text-fc-navy-800">Рейтинг колледжей г. Астана</h2>
-          <p className="text-sm text-fc-steel-500 mt-0.5">
-            {ASTANA_DATA.length} организации ТиПО · Нормализованная шкала 0–100 (лучший = 100)
-          </p>
+          <label className="label-eyebrow mb-1 block">Собственность</label>
+          <select
+            className="input w-44"
+            value={ownershipFilter}
+            onChange={e => setOwnershipFilter(e.target.value)}
+          >
+            <option value="">Все</option>
+            <option value="коммунальная">Коммунальные</option>
+            <option value="частная">Частные</option>
+            <option value="квазигосударственная">Квазигосударственные</option>
+          </select>
         </div>
-        <div className="flex flex-wrap gap-3 items-end">
-          <div>
-            <label className="label-eyebrow mb-1 block">Собственность</label>
-            <select
-              className="input w-44"
-              value={ownershipFilter}
-              onChange={e => setOwnershipFilter(e.target.value)}
-            >
-              <option value="">Все</option>
-              <option value="коммунальная">Коммунальные</option>
-              <option value="частная">Частные</option>
-              <option value="квазигосударственная">Квазигосударственные</option>
-            </select>
-          </div>
-          <div>
-            <label className="label-eyebrow mb-1 block">Сортировка</label>
-            <select
-              className="input w-44"
-              value={sortKey}
-              onChange={e => setSortKey(e.target.value as SortKey)}
-            >
-              <option value="score">По баллу ↓</option>
-              <option value="name">По названию</option>
-              <option value="b1">Блок I ↓</option>
-              <option value="b2">Блок II ↓</option>
-              <option value="b3">Блок III ↓</option>
-              <option value="b4">Блок IV ↓</option>
-            </select>
-          </div>
+        <div>
+          <label className="label-eyebrow mb-1 block">Сортировка</label>
+          <select
+            className="input w-44"
+            value={sortKey}
+            onChange={e => setSortKey(e.target.value as SortKey)}
+          >
+            <option value="score">По баллу ↓</option>
+            <option value="name">По названию</option>
+            <option value="b1">Блок I ↓</option>
+            <option value="b2">Блок II ↓</option>
+            <option value="b3">Блок III ↓</option>
+            <option value="b4">Блок IV ↓</option>
+          </select>
         </div>
       </div>
 

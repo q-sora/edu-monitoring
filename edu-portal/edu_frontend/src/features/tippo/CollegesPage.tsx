@@ -6,11 +6,7 @@ import CollegeAssessmentPageComponent from "@/features/tippo/CollegeAssessmentPa
 export function CollegesPage() {
   const { user } = useAuth();
   return (
-    <div className="p-6 space-y-5">
-      <div>
-        <h1 className="text-2xl font-display font-bold" style={{ color: "var(--text-primary)" }}>Оценка эффективности колледжей</h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Рейтинг ТиППО по методике АО «Финансовый центр»</p>
-      </div>
+    <div className="p-6">
       <CollegeAssessmentPageComponent userRole={user?.role} />
     </div>
   );
