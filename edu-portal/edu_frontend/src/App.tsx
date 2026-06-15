@@ -4,16 +4,20 @@ import { AuthProvider, useAuth } from "@/auth/AuthContext";
 import { RequireAuth, RequireRole } from "@/auth/ProtectedRoute";
 import LoginPage from "@/auth/LoginPage";
 
-import {
-  AppShell,
-  DashboardPage,
-  SupersetDashboardsPage,
-  OrganisationsPage, UsersPage, ApprovalsPage, IntegrationsPage, AuditLogPage, ApiKeysPage,
-  ProfilePage,
-  CollegesPage,
-  GdpMacroPage,
-  NotFoundPage,
-} from "@/portal";
+import { AppShell }              from "@/layout/AppShell";
+import { DashboardPage }         from "@/features/dashboard/DashboardPage";
+import { SupersetDashboardsPage } from "@/features/analytics/SupersetDashboardsPage";
+import { OrganisationsPage }     from "@/features/admin/OrganisationsPage";
+import { UsersPage }             from "@/features/admin/UsersPage";
+import { ApprovalsPage }         from "@/features/admin/ApprovalsPage";
+import { IntegrationsPage }      from "@/features/admin/IntegrationsPage";
+import { AuditLogPage }          from "@/features/admin/AuditLogPage";
+import { ApiKeysPage }           from "@/features/admin/ApiKeysPage";
+import { ProfilePage }           from "@/features/profile/ProfilePage";
+import { CollegesPage }          from "@/features/tippo/CollegesPage";
+import { GdpMacroPage }          from "@/features/gdp/GdpMacroPage";
+import { OverviewPage }          from "@/features/overview/OverviewPage";
+import { NotFoundPage }          from "@/pages/NotFoundPage";
 import UniversalImportPage from "@/features/import/UniversalImportPage";
 import SchoolRatingForm from "@/features/schools/SchoolRatingForm";
 import EduLevelPage from "@/features/edu-level/EduLevelPage";
@@ -37,6 +41,7 @@ export default function App() {
 
           <Route element={<RequireAuth />}>
             <Route element={<AppShell />}>
+              <Route path="/overview"   element={<OverviewPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/profile"   element={<ProfilePage />} />
 

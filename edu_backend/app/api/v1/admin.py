@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.dependencies import (
     AdminOrSuper,
+    AuthenticatedUser,
     CanApprove,
     DBSession,
     ReadDBSession,
@@ -1034,6 +1035,58 @@ async def system_stats(
         "redis_version":      redis_info.get("redis_version"),
         "uptime_seconds":     redis_info.get("uptime_in_seconds"),
     }
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Overview stats — org counts + budgets by education level
+# ─────────────────────────────────────────────────────────────────────────────
+
+# org_type_id → edu level key
+_ORG_TYPE_LEVEL = {1: "do", 2: "dopo", 3: "so", 4: "tippo", 5: "vipo"}
+
+@router.get("/overview-stats", summary="Статистика по уровням образования для вкладки Обзор")
+async def overview_stats(db: ReadDBSession, _token: AuthenticatedUser) -> dict:
+    # Org counts by org_type_id (only active, not deleted)
+    count_rows = (
+        await db.execute(
+            select(Organization.org_type_id, func.count().label("cnt"))
+            .where(Organization.deleted_at.is_(None))
+            .group_by(Organization.org_type_id)
+        )
+    ).all()
+
+    # Latest approved annual_budget per org, summed by org_type
+    budget_rows = (
+        await db.execute(
+            select(Organization.org_type_id, func.coalesce(func.sum(FinanceRecord.annual_budget), 0).label("total"))
+            .join(FinanceRecord, FinanceRecord.org_id == Organization.id)
+            .where(
+                Organization.deleted_at.is_(None),
+                FinanceRecord.deleted_at.is_(None),
+                FinanceRecord.submission_status == "approved",
+            )
+            .group_by(Organization.org_type_id)
+        )
+    ).all()
+
+    budget_map: dict[int, float] = {r.org_type_id: float(r.total) for r in budget_rows if r.org_type_id}
+
+    levels: dict = {}
+    for r in count_rows:
+        key = _ORG_TYPE_LEVEL.get(r.org_type_id)
+        if not key:
+            continue
+        budget_tg = budget_map.get(r.org_type_id, 0.0)
+        levels[key] = {
+            "org_count":   r.cnt,
+            "budget_mlrd": round(budget_tg / 1_000_000_000, 1),  # тг → млрд тг
+        }
+
+    # Fill missing levels with zeros
+    for key in _ORG_TYPE_LEVEL.values():
+        levels.setdefault(key, {"org_count": 0, "budget_mlrd": 0.0})
+
+    return {"levels": levels}
 
 
 # ─────────────────────────────────────────────────────────────────────────────

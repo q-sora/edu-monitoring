@@ -18,6 +18,7 @@ interface TabItem {
 const TAB_GROUPS: TabItem[][] = [
   // Обзор
   [
+    { to: "/overview",  label: "Обзор",   color: "#19286D", show: r => ["superadmin","admin","management","data_entry"].includes(r) },
     { to: "/dashboard", label: "Дашборд", color: "#60A5FA", show: r => ["superadmin","admin","management","data_entry"].includes(r) },
   ],
   [

@@ -677,8 +677,8 @@ function SpecialtiesTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: "ratings",      label: "Рейтинг",          icon: Trophy,     roles: null },
   { key: "astana",       label: "Рейтинг Астаны",   icon: BarChart2,  roles: null },
+  { key: "ratings",      label: "Рейтинг",          icon: Trophy,     roles: null },
   { key: "regions",      label: "По регионам",      icon: MapPin,     roles: null },
   { key: "specialties",  label: "Специальности",    icon: Building2,  roles: null },
   { key: "methodology",  label: "Методология",      icon: Trophy,     roles: null },
@@ -768,8 +768,7 @@ function MethodologyTab() {
 
 export default function CollegeAssessmentPage({ userRole }: { userRole?: string }) {
   const canImport = !userRole || ["superadmin", "admin"].includes(userRole);
-  const defaultTab: TabKey = "ratings";
-  const [activeTab, setActiveTab] = useState<TabKey>(defaultTab);
+  const [activeTab, setActiveTab] = useState<TabKey>("astana");
 
   const visibleTabs = TABS.filter(t => !t.roles || !userRole || t.roles.includes(userRole as any));
 
