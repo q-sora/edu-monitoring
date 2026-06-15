@@ -3,7 +3,13 @@ import React, { useState } from "react";
 import { Search, X, Building2 } from "lucide-react";
 import { useApi, useRegions } from "@/hooks/useApi";
 import { Loader, ErrorBox, EmptyState, PageHeader } from "@/components/ui";
-import { ORG_TYPE_RU, STATUS_RU } from "@/features/transparency/TransparencyPage";
+const ORG_TYPE_RU: Record<number, string> = {
+  1: "Дошкольное", 2: "Дополнительное", 3: "Среднее",
+  4: "Техн. и проф.", 5: "Высшее и послевуз.", 6: "Общежитие", 8: "Иное",
+};
+const STATUS_RU: Record<string, string> = {
+  active: "Активна", reorganized: "Реорганизована", liquidated: "Ликвидирована",
+};
 
 interface Organisation {
   id: string;
