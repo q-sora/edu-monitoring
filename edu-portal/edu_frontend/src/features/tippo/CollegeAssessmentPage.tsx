@@ -1,8 +1,9 @@
 import React, { useCallback, useRef, useState } from "react";
 import {
   AlertTriangle, Building2, CheckCircle2, ChevronDown, ChevronUp,
-  Download, FileUp, Loader2, MapPin, Trophy, Upload, Users,
+  Download, FileUp, Loader2, MapPin, Trophy, Upload, Users, BarChart2,
 } from "lucide-react";
+import AstanaRatingTab from "./AstanaRatingTab";
 import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -676,11 +677,12 @@ function SpecialtiesTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: "ratings",      label: "Рейтинг",          icon: Trophy,    roles: null },
-  { key: "regions",      label: "По регионам",      icon: MapPin,    roles: null },
-  { key: "specialties",  label: "Специальности",    icon: Building2, roles: null },
-  { key: "methodology",  label: "Методология",      icon: Trophy,    roles: null },
-  { key: "import",       label: "Загрузить файл",  icon: Upload,    roles: ["superadmin", "admin"] },
+  { key: "ratings",      label: "Рейтинг",          icon: Trophy,     roles: null },
+  { key: "astana",       label: "Рейтинг Астаны",   icon: BarChart2,  roles: null },
+  { key: "regions",      label: "По регионам",      icon: MapPin,     roles: null },
+  { key: "specialties",  label: "Специальности",    icon: Building2,  roles: null },
+  { key: "methodology",  label: "Методология",      icon: Trophy,     roles: null },
+  { key: "import",       label: "Загрузить файл",   icon: Upload,     roles: ["superadmin", "admin"] },
 ] as const;
 
 type TabKey = typeof TABS[number]["key"];
@@ -796,6 +798,7 @@ export default function CollegeAssessmentPage({ userRole }: { userRole?: string 
       <div>
         {activeTab === "import"      && <ImportTab />}
         {activeTab === "ratings"     && <RatingsTab />}
+        {activeTab === "astana"      && <AstanaRatingTab />}
         {activeTab === "regions"     && <RegionsTab />}
         {activeTab === "specialties" && <SpecialtiesTab />}
         {activeTab === "methodology" && <MethodologyTab />}
