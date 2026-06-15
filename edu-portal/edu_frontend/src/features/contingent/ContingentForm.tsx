@@ -209,6 +209,7 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
   const orgId = propOrgId ?? user?.org_id;
   const [tab, setTab] = useState("core");
   const [status, setStatus] = useState("draft");
+  const [currentRecordId, setCurrentRecordId] = useState(recordId);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -224,10 +225,14 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
 
   const { handleSubmit, reset, formState: { isDirty } } = methods;
 
+  useEffect(() => {
+    setCurrentRecordId(recordId);
+  }, [recordId]);
+
   // Load existing record
   useEffect(() => {
-    if (!orgId || !recordId) return;
-    client.get(`/organisations/${orgId}/contingent/${recordId}`)
+    if (!orgId || !currentRecordId) return;
+    client.get(`/organisations/${orgId}/contingent/${currentRecordId}`)
       .then(r => {
         const d = r.data as any;
         setStatus(d.submission_status ?? "draft");
@@ -238,7 +243,7 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
         });
       })
       .catch(() => setError("Не удалось загрузить запись"));
-  }, [orgId, recordId, reset]);
+  }, [orgId, currentRecordId, reset]);
 
   const isReadOnly = status === "submitted" || status === "under_review" || status === "approved";
 
@@ -253,10 +258,11 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
         new_enrolled: data.new_enrolled ?? null,
         withdrawn:    data.withdrawn    ?? null,
       };
-      if (recordId) {
-        await client.patch(`/organisations/${orgId}/contingent/${recordId}`, payload);
+      if (currentRecordId) {
+        await client.patch(`/organisations/${orgId}/contingent/${currentRecordId}`, payload);
       } else {
-        await client.post(`/organisations/${orgId}/contingent`, payload);
+        const { data: created } = await client.post(`/organisations/${orgId}/contingent`, payload);
+        if (created?.id) setCurrentRecordId(String(created.id));
       }
       setLastSaved(new Date());
       setStatus("draft");
@@ -265,20 +271,21 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
     } finally {
       setSaving(false);
     }
-  }, [orgId, recordId]);
+  }, [orgId, currentRecordId]);
 
   const doSubmit = useCallback(async (data: ContingentFormData) => {
     if (!orgId) { setError("Организация не выбрана"); return; }
     setSubmitting(true);
     setError(null);
     try {
-      if (!recordId) {
+      if (!currentRecordId) {
         const res = await client.post<any>(`/organisations/${orgId}/contingent`, data);
         const newId = res.data.id;
+        setCurrentRecordId(String(newId));
         await client.patch(`/organisations/${orgId}/contingent/${newId}/status`, { status: "submitted" });
       } else {
-        await client.patch(`/organisations/${orgId}/contingent/${recordId}`, data);
-        await client.patch(`/organisations/${orgId}/contingent/${recordId}/status`, { status: "submitted" });
+        await client.patch(`/organisations/${orgId}/contingent/${currentRecordId}`, data);
+        await client.patch(`/organisations/${orgId}/contingent/${currentRecordId}/status`, { status: "submitted" });
       }
       setStatus("submitted");
       setLastSaved(new Date());
@@ -287,7 +294,7 @@ export default function ContingentForm({ recordId, orgId: propOrgId }: { recordI
     } finally {
       setSubmitting(false);
     }
-  }, [orgId, recordId]);
+  }, [orgId, currentRecordId]);
 
   return (
     <FormProvider {...methods}>

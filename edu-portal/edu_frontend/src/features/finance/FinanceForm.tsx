@@ -150,6 +150,7 @@ export default function FinanceForm({ recordId, orgId: propOrgId }: { recordId?:
   const orgId = propOrgId ?? user?.org_id;
   const [tab, setTab] = useState("general");
   const [status, setStatus] = useState("draft");
+  const [currentRecordId, setCurrentRecordId] = useState(recordId);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -165,27 +166,32 @@ export default function FinanceForm({ recordId, orgId: propOrgId }: { recordId?:
   });
 
   useEffect(() => {
-    if (!recordId || !orgId) return;
+    setCurrentRecordId(recordId);
+  }, [recordId]);
+
+  useEffect(() => {
+    if (!currentRecordId || !orgId) return;
     (async () => {
       try {
-        const { data } = await client.get(`/organisations/${orgId}/finance/${recordId}`);
+        const { data } = await client.get(`/organisations/${orgId}/finance/${currentRecordId}`);
         methods.reset(data);
         setStatus(data.submission_status ?? "draft");
       } catch (e: any) {
         setError(e?.response?.data?.detail ?? "Не удалось загрузить запись");
       }
     })();
-  }, [recordId, orgId, methods]);
+  }, [currentRecordId, orgId, methods]);
 
   const saveDraft = useCallback(async (values: FinanceForm) => {
     if (!orgId) return;
     setSaving(true);
     setError(null);
     try {
-      if (recordId) {
-        await client.patch(`/organisations/${orgId}/finance/${recordId}`, values);
+      if (currentRecordId) {
+        await client.patch(`/organisations/${orgId}/finance/${currentRecordId}`, values);
       } else {
-        await client.post(`/organisations/${orgId}/finance`, values);
+        const { data } = await client.post(`/organisations/${orgId}/finance`, values);
+        if (data?.id) setCurrentRecordId(String(data.id));
       }
       setLastSaved(new Date());
     } catch (e: any) {
@@ -193,17 +199,17 @@ export default function FinanceForm({ recordId, orgId: propOrgId }: { recordId?:
     } finally {
       setSaving(false);
     }
-  }, [orgId, recordId]);
+  }, [orgId, currentRecordId]);
 
   const submitForApproval = async () => {
-    if (!orgId || !recordId) {
+    if (!orgId || !currentRecordId) {
       setError("Сначала сохраните черновик");
       return;
     }
     setSubmitting(true);
     setError(null);
     try {
-      await client.patch(`/organisations/${orgId}/finance/${recordId}/status`, {
+      await client.patch(`/organisations/${orgId}/finance/${currentRecordId}/status`, {
         new_status: "submitted",
         comment: "Отправлено на согласование из формы",
       });
@@ -253,8 +259,8 @@ export default function FinanceForm({ recordId, orgId: propOrgId }: { recordId?:
                   {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
                   Сохранить черновик
                 </button>
-                <button type="button" onClick={submitForApproval} disabled={submitting || !recordId}
-                  title={!recordId ? "Сначала сохраните" : ""}
+                <button type="button" onClick={submitForApproval} disabled={submitting || !currentRecordId}
+                  title={!currentRecordId ? "Сначала сохраните" : ""}
                   className="btn-primary">
                   {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                   На согласование

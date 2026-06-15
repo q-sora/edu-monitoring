@@ -143,6 +143,7 @@ export default function ScienceForm({ recordId, orgId: propOrgId }: { recordId?:
   const orgId = propOrgId ?? user?.org_id;
   const [tab, setTab] = useState("publications");
   const [status, setStatus] = useState("draft");
+  const [currentRecordId, setCurrentRecordId] = useState(recordId);
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
@@ -158,27 +159,32 @@ export default function ScienceForm({ recordId, orgId: propOrgId }: { recordId?:
   });
 
   useEffect(() => {
-    if (!recordId || !orgId) return;
+    setCurrentRecordId(recordId);
+  }, [recordId]);
+
+  useEffect(() => {
+    if (!currentRecordId || !orgId) return;
     (async () => {
       try {
-        const { data } = await client.get(`/organisations/${orgId}/science-activity/${recordId}`);
+        const { data } = await client.get(`/organisations/${orgId}/science-activity/${currentRecordId}`);
         methods.reset(data);
         setStatus(data.submission_status ?? "draft");
       } catch (e: any) {
         setError(e?.response?.data?.detail ?? "Ошибка загрузки");
       }
     })();
-  }, [recordId, orgId, methods]);
+  }, [currentRecordId, orgId, methods]);
 
   const saveDraft = useCallback(async (values: ScienceForm) => {
     if (!orgId) return;
     setSaving(true);
     setError(null);
     try {
-      if (recordId) {
-        await client.patch(`/organisations/${orgId}/science-activity/${recordId}`, values);
+      if (currentRecordId) {
+        await client.patch(`/organisations/${orgId}/science-activity/${currentRecordId}`, values);
       } else {
-        await client.post(`/organisations/${orgId}/science-activity`, values);
+        const { data } = await client.post(`/organisations/${orgId}/science-activity`, values);
+        if (data?.id) setCurrentRecordId(String(data.id));
       }
       setLastSaved(new Date());
     } catch (e: any) {
@@ -186,13 +192,13 @@ export default function ScienceForm({ recordId, orgId: propOrgId }: { recordId?:
     } finally {
       setSaving(false);
     }
-  }, [orgId, recordId]);
+  }, [orgId, currentRecordId]);
 
   const submitForApproval = async () => {
-    if (!orgId || !recordId) { setError("Сначала сохраните"); return; }
+    if (!orgId || !currentRecordId) { setError("Сначала сохраните"); return; }
     setSubmitting(true);
     try {
-      await client.patch(`/organisations/${orgId}/science-activity/${recordId}/status`,
+      await client.patch(`/organisations/${orgId}/science-activity/${currentRecordId}/status`,
         { new_status: "submitted" });
       setStatus("submitted");
     } catch (e: any) {
@@ -218,7 +224,7 @@ export default function ScienceForm({ recordId, orgId: propOrgId }: { recordId?:
     <FormProvider {...methods}>
       <form onSubmit={methods.handleSubmit(saveDraft)}>
         <FormHeader status={status} lastSaved={lastSaved} saving={saving} submitting={submitting}
-          onSubmit={submitForApproval} canSubmit={!!recordId} readOnly={isReadOnly} />
+          onSubmit={submitForApproval} canSubmit={!!currentRecordId} readOnly={isReadOnly} />
 
         {error && (
           <div className="mb-4">

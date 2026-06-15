@@ -3,13 +3,12 @@ import {
   AlertTriangle, Building2, CheckCircle2, ChevronDown, ChevronUp,
   FileUp, Loader2, MapPin, Trophy, Upload,
 } from "lucide-react";
-import AstanaRatingTab from "./AstanaRatingTab";
 import {
   Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import client from "@/api/client";
 import { useApi } from "@/hooks/useApi";
-import { ErrorBox } from "@/components/ui";
+import { ErrorBox, PageHeader } from "@/components/ui";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -756,6 +755,49 @@ function MethodologyTab() {
 }
 
 
+type TabKey = "ratings" | "regions" | "specialties" | "import" | "methodology";
+
+const TABS: Array<{ key: TabKey; label: string }> = [
+  { key: "ratings", label: "Рейтинг" },
+  { key: "regions", label: "Регионы" },
+  { key: "specialties", label: "Специальности" },
+  { key: "import", label: "Импорт" },
+  { key: "methodology", label: "Методика" },
+];
+
 export default function CollegeAssessmentPage({ userRole: _userRole }: { userRole?: string }) {
-  return <AstanaRatingTab />;
+  const [activeTab, setActiveTab] = useState<TabKey>("ratings");
+
+  return (
+    <div className="space-y-5">
+      <PageHeader
+        title="Рейтинг колледжей ТиПО"
+        subtitle="Данные загружаются из таблиц college_assessment и college_assessment_specialty"
+        actions={<Building2 className="w-6 h-6 text-fc-navy-500" />}
+      />
+
+      <div className="flex flex-wrap gap-2 border-b border-fc-navy-100 pb-2">
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-3 py-2 rounded-md text-sm font-semibold transition-colors ${
+              activeTab === tab.key
+                ? "bg-fc-navy-800 text-white"
+                : "text-fc-steel-600 hover:bg-fc-navy-50"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "ratings" && <RatingsTab />}
+      {activeTab === "regions" && <RegionsTab />}
+      {activeTab === "specialties" && <SpecialtiesTab />}
+      {activeTab === "import" && <ImportTab />}
+      {activeTab === "methodology" && <MethodologyTab />}
+    </div>
+  );
 }

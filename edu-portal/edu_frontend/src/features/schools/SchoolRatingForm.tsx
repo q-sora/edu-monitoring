@@ -211,6 +211,7 @@ export default function SchoolRatingForm({ orgId: propOrgId, recordId }: { orgId
   const orgId = propOrgId ?? user?.org_id;
   const [openItem, setOpenItem] = useState<string>("block-a");
   const [status, setStatus] = useState("draft");
+  const [currentRecordId, setCurrentRecordId] = useState(recordId);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -229,17 +230,21 @@ export default function SchoolRatingForm({ orgId: propOrgId, recordId }: { orgId
   const liveResults = useMemo(() => calculateSchoolRatingClient(watchAll as any), [watchAll]);
 
   useEffect(() => {
-    if (!recordId || !orgId) return;
+    setCurrentRecordId(recordId);
+  }, [recordId]);
+
+  useEffect(() => {
+    if (!currentRecordId || !orgId) return;
     (async () => {
       try {
-        const { data } = await client.get(`/organisations/${orgId}/school-rating/${recordId}`);
+        const { data } = await client.get(`/organisations/${orgId}/school-rating/${currentRecordId}`);
         methods.reset(data.raw_data);
         setStatus(data.submission_status);
       } catch (e: any) {
         setError("Не удалось загрузить данные");
       }
     })();
-  }, [recordId, orgId]);
+  }, [currentRecordId, orgId]);
 
   const onSave = async (values: SchoolRatingFormValues) => {
     if (!orgId) return;
@@ -252,10 +257,11 @@ export default function SchoolRatingForm({ orgId: propOrgId, recordId }: { orgId
         raw_data: values,
         submission_status: "draft"
       };
-      if (recordId) {
-        await client.patch(`/organisations/${orgId}/school-rating/${recordId}`, payload);
+      if (currentRecordId) {
+        await client.patch(`/organisations/${orgId}/school-rating/${currentRecordId}`, payload);
       } else {
-        await client.post(`/organisations/${orgId}/school-rating`, payload);
+        const { data } = await client.post(`/organisations/${orgId}/school-rating`, payload);
+        if (data?.id) setCurrentRecordId(String(data.id));
       }
       setSuccess("Черновик успешно сохранён");
     } catch (e: any) {

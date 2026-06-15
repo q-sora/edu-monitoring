@@ -57,6 +57,7 @@ redis_data/
 *.xlsx
 *.xls
 *.csv
+*.db
 data.xlsx
 uploads/
 tmp/
