@@ -193,7 +193,7 @@ export function TransparencyPage() {
 
   const SortTh = ({ k, children }: { k: SortKey; children: React.ReactNode }) => (
     <th
-      className="cursor-pointer select-none text-center" // Убраны стили наведения, добавлено центрирование
+      className="cursor-pointer select-none text-center px-3 py-3" // Убраны стили наведения, добавлено центрирование и паддинги
       onClick={() => toggleSort(k)}
     >
       <div className="flex items-center justify-center gap-1 text-white font-bold"> {/* Изменен цвет текста на белый */}
@@ -249,22 +249,22 @@ export function TransparencyPage() {
       )}
 
       {!loading && !error && (
-        <div className="card overflow-x-auto mb-5">
-          <div className="px-5 py-3 flex items-center gap-3" style={{ borderBottom: "1px solid var(--border-subtle)" }}>
-            <p className="label-eyebrow mr-auto">Финансы и контингент — {mapYear}</p>
+        <div className="rounded-2xl border border-gray-200 bg-white overflow-hidden overflow-x-auto mb-5">
+          <div className="px-5 py-4 flex items-center gap-3 border-b border-gray-100">
+            <p className="font-semibold text-gray-800 mr-auto">Финансы и контингент — {mapYear}</p>
             <span className="pill text-[10px]">{filterLabel}</span>
           </div>
 
           {orgs.length === 0 ? (
-            <div className="p-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+            <div className="p-8 text-center text-sm text-gray-400">
               Нет данных по выбранному фильтру
             </div>
           ) : (
-            <table className="data-table whitespace-nowrap">
+            <table className="w-full text-sm whitespace-nowrap">
               <thead>
-                <tr>
-                  <th className="sticky left-0 z-10" style={{ background: "var(--surface-card)" }}>Организация</th>
-                  <th>Уровень образования</th>
+                <tr className="bg-gradient-to-r from-fc-blue-700 to-fc-blue-900">
+                  <th className="sticky left-0 z-10 bg-fc-blue-700 px-4 py-3 text-left font-bold text-white min-w-[180px]">Организация</th>
+                  <th className="px-3 py-3 text-left font-bold text-white">Уровень образования</th>
                   <SortTh k="students">Контингент</SortTh>
                   <SortTh k="budget">Бюджет</SortTh>
                   <SortTh k="cost_per_student">₸/чел.</SortTh>
@@ -279,31 +279,31 @@ export function TransparencyPage() {
               </thead>
               <tbody>
                 {orgs.map(org => (
-                  <tr key={org.id}>
-                    <td className="sticky left-0 font-medium max-w-[180px] truncate z-10" style={{ background: "var(--surface-card)", color: "var(--text-primary)" }}>
+                  <tr key={org.id} className="group border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                    <td className="sticky left-0 px-4 py-2.5 font-medium max-w-[180px] truncate z-10 bg-white group-hover:bg-gray-50 text-gray-800 transition-colors">
                       <span title={org.name_ru}>{org.name_ru}</span>
                     </td>
-                    <td className="text-xs">
+                    <td className="px-3 py-2.5 text-xs text-gray-600">
                       {org.org_type_id ? (ORG_TYPE_RU[org.org_type_id] ?? "—") : "—"}
                     </td>
-                    <td className="tabular-nums text-right">{fmt(org.students)}</td>
-                    <td className="tabular-nums text-right">{fmtM(org.budget)}</td>
-                    <td className="tabular-nums text-right font-semibold">
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">{fmt(org.students)}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">{fmtM(org.budget)}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right font-semibold text-gray-800">
                       {org.cost_per_student ? `${(org.cost_per_student / 1000).toFixed(0)} тыс` : "—"}
                     </td>
-                    <td className="tabular-nums text-right">
+                    <td className="px-3 py-2.5 tabular-nums text-right">
                       <MetricPill value={org.payroll_pct} avg={avg?.payroll_pct} higherIsBad />
                     </td>
-                    <td className="tabular-nums text-right">
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">
                       {fmt(org.rnd_pct, 1)}{org.rnd_pct !== null ? "%" : ""}
                     </td>
-                    <td className="tabular-nums text-right">{fmt(org.grant_pct, 1)}{org.grant_pct !== null ? "%" : ""}</td>
-                    <td className="tabular-nums text-right">
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">{fmt(org.grant_pct, 1)}{org.grant_pct !== null ? "%" : ""}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right">
                       <MetricPill value={org.employment_rate} avg={avg?.employment_rate} higherIsBad={false} />
                     </td>
-                    <td className="tabular-nums text-right">{fmt(org.h_index_avg, 2)}</td>
-                    <td className="tabular-nums text-right">{fmt(org.publications_scopus)}</td>
-                    <td className="tabular-nums text-right">{fmt(org.publications_wos)}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">{fmt(org.h_index_avg, 2)}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">{fmt(org.publications_scopus)}</td>
+                    <td className="px-3 py-2.5 tabular-nums text-right text-gray-800">{fmt(org.publications_wos)}</td>
                   </tr>
                 ))}
               </tbody>
