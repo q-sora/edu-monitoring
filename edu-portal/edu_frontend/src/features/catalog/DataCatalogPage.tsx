@@ -42,7 +42,6 @@ const LEVEL_META: Record<string, { name: string; accent: string; icon: string }>
   tippo: { name: "ТиППО",                               accent: "#7596b9", icon: "#7596b9" },
   vipo:  { name: "Высшее и послевузовское образование", accent: "#c248c4", icon: "#c248c4" },
   obsh:  { name: "Общежития",                           accent: "#8ca0c8", icon: "#8ca0c8" },
-  gons:  { name: "ГОНС",                                accent: "#4da8d8", icon: "#4da8d8" },
 };
 
 // ─────────────────────────────────────────────────────────────────────────────

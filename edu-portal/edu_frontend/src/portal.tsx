@@ -17,9 +17,7 @@ export { ApiKeysPage }        from "@/features/admin/ApiKeysPage";
 export { ContingentPage, FinancePage, SciencePage, GraduatesPage, EducationPage, HistoryPage } from "@/features/data-entry/DataPages";
 export { SupersetDashboardsPage, SupersetSection } from "@/features/analytics/SupersetDashboardsPage";
 export { AnalyticsGlobalStatsPage } from "@/features/analytics/AnalyticsGlobalStatsPage";
-export { AIReportsPage }      from "@/features/ai/AIReportsPage";
 export { ProfilePage }        from "@/features/profile/ProfilePage";
-export { PresentationsPage }  from "@/features/presentations/PresentationsPage";
 export { CollegesPage }       from "@/features/tippo/CollegesPage";
 export { NotFoundPage }       from "@/pages/NotFoundPage";
 

@@ -27,14 +27,11 @@ const TAB_GROUPS: TabItem[][] = [
     { to: "/edu/extracurricular",    label: "Доп. обр.", color: "#DB2777", show: () => true },
     { to: "/edu/college",            label: "ТиПО",      color: "#D97706", show: () => true },
     { to: "/edu/university",         label: "ОВПО",      color: "#7C3AED", show: () => true },
-    { to: "/edu/special",            label: "ГОНС",      color: "#296695", show: () => true },
   ],
   // Аналитика
   [
     { to: "/transparency",           label: "Прозрачность",  color: "#296695", show: r => ["superadmin","admin","management"].includes(r) },
     { to: "/anomalies",              label: "Аномалии",      color: "#DC2626", show: r => ["superadmin","admin","management"].includes(r) },
-    { to: "/reports",                label: "AI-отчёты",     color: "#801E82", show: r => ["superadmin","admin","management"].includes(r) },
-    { to: "/presentations",          label: "Презентации",   color: "#801E82", show: r => ["superadmin","admin","management"].includes(r) },
     { to: "/analytics/global-stats", label: "Глобальная",    color: "#0068B4", show: r => ["superadmin","admin"].includes(r) },
     { to: "/coverage",               label: "Покрытие",      color: "#0068B4", show: r => ["superadmin","admin"].includes(r) },
     { to: "/tippo/colleges",         label: "Рейтинг Астаны",color: "#D97706", show: r => ["superadmin","admin","management"].includes(r) },

@@ -49,7 +49,6 @@ const EDUCATION_LEVELS = [
   { value: "tippo", label: "ТиППО" },
   { value: "vipo",  label: "Высшее и послевузовское образование" },
   { value: "obsh",  label: "Общежития" },
-  { value: "gons",  label: "ГОНС" },
 ];
 
 const VALUE_TYPES = [

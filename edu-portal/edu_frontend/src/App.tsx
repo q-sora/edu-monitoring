@@ -13,8 +13,6 @@ import {
   CoveragePage,
   ContingentPage, FinancePage, SciencePage, GraduatesPage, EducationPage, HistoryPage,
   CoefficientsPage,
-  AIReportsPage,
-  PresentationsPage,
   AnomaliesPage,
   OrganisationsPage, UsersPage, ApprovalsPage, IntegrationsPage, AuditLogPage, ApiKeysPage,
   ProfilePage,
@@ -60,7 +58,6 @@ export default function App() {
               <Route path="/edu/extracurricular" element={<EduLevelPage level="dopo"  />} />
               <Route path="/edu/college"         element={<EduLevelPage level="tippo" />} />
               <Route path="/edu/university"      element={<EduLevelPage level="vipo"  />} />
-              <Route path="/edu/special"         element={<EduLevelPage level="gons"  />} />
 
               {/* Алиасы старых маршрутов */}
               <Route path="/data/contingent" element={<Navigate to="/edu/school" replace />} />
@@ -83,8 +80,6 @@ export default function App() {
               <Route path="/analytics/global-stats" element={<AnalyticsGlobalStatsPage />} />
 
               <Route element={<RequirePermission permission="ai_insights.view" />}>
-                <Route path="/reports"        element={<AIReportsPage />} />
-                <Route path="/presentations"  element={<PresentationsPage />} />
                 <Route path="/anomalies"      element={<AnomaliesPage />} />
               </Route>
 

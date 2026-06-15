@@ -42,14 +42,6 @@ export const LEVEL_CONFIG = {
     tabs: ['contingent', 'finance', 'science', 'graduates', 'education'],
     accentColor: 'purple',
   },
-  gons: {
-    label: 'ГОНС / Спец. организации',
-    shortLabel: 'ГОНС',
-    icon: '🏛',
-    orgTypeIds: [7],
-    tabs: ['contingent', 'finance', 'education'],
-    accentColor: 'navy',
-  },
 } as const;
 
 export type EduLevel = keyof typeof LEVEL_CONFIG;
