@@ -16,6 +16,7 @@ export { ContingentPage, FinancePage, SciencePage, GraduatesPage, EducationPage,
 export { SupersetDashboardsPage, SupersetSection } from "@/features/analytics/SupersetDashboardsPage";
 export { ProfilePage }        from "@/features/profile/ProfilePage";
 export { CollegesPage }       from "@/features/tippo/CollegesPage";
+export { GdpMacroPage }      from "@/features/gdp/GdpMacroPage";
 export { NotFoundPage }       from "@/pages/NotFoundPage";
 
 // These are already in their own files and imported directly in App.tsx

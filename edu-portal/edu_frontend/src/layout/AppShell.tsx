@@ -20,6 +20,9 @@ const TAB_GROUPS: TabItem[][] = [
   [
     { to: "/dashboard", label: "Дашборд", color: "#60A5FA", show: r => ["superadmin","admin","management","data_entry"].includes(r) },
   ],
+  [
+    { to: "/analytics/gdp",   label: "ВВП / Макроэффект", color: "#1D9E75", show: r => ["superadmin","admin","management"].includes(r) },
+  ],
   // Уровни образования
   [
     { to: "/edu/preschool",          label: "ДДО",       color: "#0D9E6E", show: () => true },
@@ -30,7 +33,7 @@ const TAB_GROUPS: TabItem[][] = [
   ],
   // Аналитика
   [
-    { to: "/tippo/colleges", label: "Рейтинг Астаны", color: "#D97706", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/tippo/colleges",  label: "Рейтинг Астаны",  color: "#D97706", show: r => ["superadmin","admin","management"].includes(r) },
   ],
   // Администрирование
   [

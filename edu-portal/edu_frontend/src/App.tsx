@@ -11,6 +11,7 @@ import {
   OrganisationsPage, UsersPage, ApprovalsPage, IntegrationsPage, AuditLogPage, ApiKeysPage,
   ProfilePage,
   CollegesPage,
+  GdpMacroPage,
   NotFoundPage,
 } from "@/portal";
 import UniversalImportPage from "@/features/import/UniversalImportPage";
@@ -60,6 +61,9 @@ export default function App() {
 
               {/* Оценка колледжей ТиПО */}
               <Route path="/tippo/colleges" element={<CollegesPage />} />
+
+              {/* ВВП / Макроэффект */}
+              <Route path="/analytics/gdp" element={<GdpMacroPage />} />
 
               <Route element={<RequireRole roles={["admin", "superadmin"]} />}>
                 <Route path="/admin/organisations"    element={<OrganisationsPage />} />
