@@ -11,6 +11,9 @@ import { CollegesPage }           from "@/features/tippo/CollegesPage";
 import { GdpMacroPage }           from "@/features/gdp/GdpMacroPage";
 import { ChainBreaksPage }        from "@/features/chain/ChainBreaksPage";
 import { RoiGraduatePage }        from "@/features/roi/RoiGraduatePage";
+import { TrajectoryPage }         from "@/features/trajectory/TrajectoryPage";
+import { CompareEduLevelsPage }   from "@/features/compare/CompareEduLevelsPage";
+import { ItDataPage }             from "@/features/itdata/ItDataPage";
 import { OverviewPage }           from "@/features/overview/OverviewPage";
 import { NotFoundPage }           from "@/pages/NotFoundPage";
 import SchoolRatingForm from "@/features/schools/SchoolRatingForm";
@@ -62,7 +65,10 @@ export default function App() {
               {/* ВВП / Макроэффект */}
               <Route path="/analytics/gdp"   element={<GdpMacroPage />} />
               <Route path="/analytics/chain" element={<ChainBreaksPage />} />
-              <Route path="/analytics/roi"   element={<RoiGraduatePage />} />
+              <Route path="/analytics/roi"        element={<RoiGraduatePage />} />
+              <Route path="/analytics/trajectory" element={<TrajectoryPage />} />
+              <Route path="/analytics/compare"    element={<CompareEduLevelsPage />} />
+              <Route path="/analytics/itdata"    element={<ItDataPage />} />
             </Route>
           </Route>
 

@@ -23,7 +23,10 @@ const TAB_GROUPS: TabItem[][] = [
   [
     { to: "/analytics/gdp",   label: "ВВП / Макроэффект",    color: "#1D9E75", show: r => ["superadmin","admin","management"].includes(r) },
     { to: "/analytics/chain", label: "Разрывы в цепочке",    color: "#DC2626", show: r => ["superadmin","admin","management"].includes(r) },
-    { to: "/analytics/roi",   label: "ROI выпускника",       color: "#7C3AED", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/roi",        label: "ROI выпускника",          color: "#7C3AED", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/trajectory", label: "Траектория учащегося",    color: "#7C3AED", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/compare",    label: "Уровни образования",      color: "#16A34A", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/itdata",    label: "Данные для IT",           color: "#6B7280", show: r => ["superadmin","admin","management"].includes(r) },
   ],
   // Уровни образования
   [

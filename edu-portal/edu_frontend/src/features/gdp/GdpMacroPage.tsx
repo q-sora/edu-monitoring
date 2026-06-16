@@ -8,7 +8,9 @@ import { PageHeader } from "@/components/ui";
 // ── Constants from reference model ───────────────────────────────────────────
 const GDP_BASE_TRN    = 120;    // ВВП РК 2023: $261.8 млрд ≈ 120 трлн тг
 const AVG_SALARY_BASE = 403;    // тыс тг/мес средняя зарплата РК (2024)
-const POTENTIAL_SALARY = 420;   // тыс тг/мес если все работают по специальности
+// Целевая зарплата при 70% трудоустройстве по специальности — должна совпадать
+// с тем, что даёт умеренный сценарий, иначе ambitious < moderate при pisaDelta=0
+const POTENTIAL_SALARY = AVG_SALARY_BASE * (0.7 + 0.70 * 0.5); // ~423 тыс тг
 const PISA_GDP_COEFF  = 0.0087; // +1 балл PISA = +0.87% ВВП за 40 лет
 const MULTIPLIER      = 1.55;   // мультипликатор образования
 const TAX             = 0.21;
@@ -110,7 +112,8 @@ export function GdpMacroPage() {
 
   const c = useMemo(() => {
     // currentAvgSal — тыс тг/мес; делим на 1e9 (не 1e12) чтобы получить трлн тг
-    const currentAvgSal   = AVG_SALARY_BASE * (0.7 + matchPct / 100 * 0.5);
+    // Кепируем на POTENTIAL_SALARY: иначе при matchPct > 70% base > moderate → diff1 < 0
+    const currentAvgSal   = Math.min(POTENTIAL_SALARY, AVG_SALARY_BASE * (0.7 + matchPct / 100 * 0.5));
     const annualGDPContrib = graduates * 1000 * currentAvgSal * 12 * MULTIPLIER / 1e9;
     const pisaGDPEffect   = GDP_BASE_TRN * pisaDelta * PISA_GDP_COEFF;
     const lossPerYear     = Math.max(0, (POTENTIAL_SALARY - currentAvgSal) * 12 * graduates * 1000 / 1e9);
