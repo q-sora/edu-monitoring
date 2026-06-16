@@ -5,7 +5,6 @@ import { RequireAuth } from "@/auth/ProtectedRoute";
 import LoginPage from "@/auth/LoginPage";
 
 import { AppShell }               from "@/layout/AppShell";
-import { SupersetDashboardsPage } from "@/features/analytics/SupersetDashboardsPage";
 import { ProfilePage }            from "@/features/profile/ProfilePage";
 import { CollegesPage }           from "@/features/tippo/CollegesPage";
 import { GdpMacroPage }           from "@/features/gdp/GdpMacroPage";
@@ -16,7 +15,6 @@ import { CompareEduLevelsPage }   from "@/features/compare/CompareEduLevelsPage"
 import { ItDataPage }             from "@/features/itdata/ItDataPage";
 import { OverviewPage }           from "@/features/overview/OverviewPage";
 import { NotFoundPage }           from "@/pages/NotFoundPage";
-import SchoolRatingForm from "@/features/schools/SchoolRatingForm";
 import EduLevelPage     from "@/features/edu-level/EduLevelPage";
 import PreschoolPage    from "@/features/edu-level/PreschoolPage";
 import SchoolPage       from "@/features/edu-level/SchoolPage";
@@ -60,9 +58,6 @@ export default function App() {
               <Route path="/data/graduates"  element={<Navigate to="/edu/university" replace />} />
               <Route path="/data/education"  element={<Navigate to="/edu/school"     replace />} />
               <Route path="/data/history"    element={<Navigate to="/edu/school"     replace />} />
-
-              <Route path="/data/school-rating" element={<SchoolRatingForm />} />
-              <Route path="/dashboards"         element={<SupersetDashboardsPage />} />
 
               {/* Оценка колледжей ТиПО */}
               <Route path="/tippo/colleges" element={<CollegesPage />} />

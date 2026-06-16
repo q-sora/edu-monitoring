@@ -17,7 +17,6 @@ from app.crud.registry import (
     education_crud,
     finance_crud,
     graduates_crud,
-    school_rating_crud,
 )
 from app.schemas.contingent import (
     ContingentListResponse,
@@ -42,12 +41,6 @@ from app.schemas.graduates import (
     GraduatesRecordCreate,
     GraduatesRecordResponse,
     GraduatesRecordUpdate,
-)
-from app.schemas.school_rating import (
-    SchoolRatingListResponse,
-    SchoolRatingCreate,
-    SchoolRatingResponse,
-    SchoolRatingUpdate,
 )
 
 # ── Contingent ────────────────────────────────────────────────────────────────
@@ -94,16 +87,5 @@ education_router = build_domain_router(
     list_response_schema=EducationListResponse,
 )
 
-# ── School Rating ─────────────────────────────────────────────────────────────
-school_rating_org_router = build_domain_router(
-    resource_path="school-rating",
-    tag="Рейтинг школ",
-    crud=school_rating_crud,
-    create_schema=SchoolRatingCreate,
-    update_schema=SchoolRatingUpdate,
-    response_schema=SchoolRatingResponse,
-    list_response_schema=SchoolRatingListResponse,
-)
-
 # Exported for main.py include_router calls
-DOMAIN_ROUTERS = [contingent_router, finance_router, graduates_router, education_router, school_rating_org_router]
+DOMAIN_ROUTERS = [contingent_router, finance_router, graduates_router, education_router]
