@@ -1050,7 +1050,7 @@ async def overview_stats(db: ReadDBSession, _token: AuthenticatedUser) -> dict:
     count_rows = (
         await db.execute(
             select(Organization.org_type_id, func.count().label("cnt"))
-            .where(Organization.deleted_at.is_(None))
+            .where(Organization.status == "active")
             .group_by(Organization.org_type_id)
         )
     ).all()
@@ -1061,7 +1061,7 @@ async def overview_stats(db: ReadDBSession, _token: AuthenticatedUser) -> dict:
             select(Organization.org_type_id, func.coalesce(func.sum(FinanceRecord.annual_budget), 0).label("total"))
             .join(FinanceRecord, FinanceRecord.org_id == Organization.id)
             .where(
-                Organization.deleted_at.is_(None),
+                Organization.status == "active",
                 FinanceRecord.deleted_at.is_(None),
                 FinanceRecord.submission_status == "approved",
             )

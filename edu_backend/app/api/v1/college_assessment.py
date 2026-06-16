@@ -60,8 +60,18 @@ async def get_ratings(
             ca.ownership_form, ca.location_type, ca.period_year,
             ca.contingent_actual, ca.capacity_design, ca.teachers_total,
             ca.total_score,
+            ca.block1_score,
+            ca.block2_score,
+            ca.block3_score,
+            ca.block4_score,
+            COALESCE(
+                JSON_AGG(
+                    JSON_BUILD_OBJECT('name', cas.specialty_name, 'score', cas.specialty_score)
+                    ORDER BY cas.specialty_score DESC NULLS LAST
+                ) FILTER (WHERE cas.id IS NOT NULL),
+                '[]'::json
+            ) AS specs,
             COUNT(cas.id) AS specialty_count,
-            ROUND(AVG(cas.specialty_score), 2) AS avg_specialty_score,
             RANK() OVER (PARTITION BY ca.period_year ORDER BY ca.total_score DESC) AS rank
         FROM college_assessment ca
         LEFT JOIN college_assessment_specialty cas ON cas.assessment_id = ca.id

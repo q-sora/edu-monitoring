@@ -116,6 +116,12 @@ client.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    // Don't try to refresh for unauthenticated requests (e.g. /auth/login with wrong password)
+    // — there's nothing to refresh, and we'd show a confusing refresh error instead of the real one
+    if (!originalRequest?.headers?.Authorization) {
+      return Promise.reject(error);
+    }
+
     // If already retried, don't loop
     if (originalRequest?._retry) {
       dispatchLogout("retry_failed");
@@ -161,7 +167,7 @@ client.interceptors.response.use(
       processQueue(refreshError, null);
       clearToken();
       dispatchLogout("session_expired");
-      return Promise.reject(refreshError);
+      return Promise.reject(error);  // return original 401, not the refresh error
 
     } finally {
       isRefreshing = false;
