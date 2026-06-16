@@ -1,0 +1,849 @@
+// src/features/edu-level/VipoPage.tsx
+import React, { useState, useMemo } from "react";
+import { 
+  Building, GraduationCap, Wallet, Activity, TrendingUp,
+  ChevronDown, ChevronUp, AlertCircle, Sparkles, CheckCircle, HelpCircle
+} from "lucide-react";
+import { useApi, useRegions } from "@/hooks/useApi";
+import { useAuth } from "@/auth/AuthContext";
+import { PageHeader, Loader, ErrorBox, StatCard, SkeletonGrid, EmptyState } from "@/components/ui";
+import { motion, AnimatePresence } from "framer-motion";
+
+// Forms
+import ContingentForm from "@/features/contingent/ContingentForm";
+import FinanceForm from "@/features/finance/FinanceForm";
+import ScienceForm from "@/features/science/ScienceForm";
+import GraduatesForm from "@/features/graduates/GraduatesForm";
+import EducationForm from "@/features/education/EducationForm";
+
+interface Organisation {
+  id: string;
+  name_ru: string;
+  org_type_id: number;
+  region_id: number;
+}
+
+interface IndicatorScore {
+  val: number | string;
+  desc: string;
+  isNegative?: boolean;
+}
+
+interface Indicator {
+  id: string;
+  name: string;
+  isGoso?: boolean;
+  scores: IndicatorScore[];
+}
+
+interface AssessmentBlock {
+  id: string;
+  title: string;
+  level: string;
+  indicatorsCount: number;
+  weightLabel: string;
+  color: string;
+  borderColor: string;
+  hoverColor: string;
+  bgLight: string;
+  indicators: Indicator[];
+}
+
+const BLOCKS_DATA: AssessmentBlock[] = [
+  {
+    id: "block_1",
+    title: "I. Инфраструктура и цифровизация",
+    level: "ОВПО в целом",
+    indicatorsCount: 7,
+    weightLabel: "~18",
+    color: "#0D9E6E",
+    borderColor: "border-[#86EFAC]",
+    hoverColor: "hover:bg-emerald-50/40",
+    bgLight: "#F0FDF4",
+    indicators: [
+      {
+        id: "b1_i0",
+        name: "Обеспеченность учебными площадями и корпусами согласно нормам СЭС",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Дефицит учебных площадей, обучение в 3 смены" },
+          { val: 1.5, desc: "Соответствие площадей нормативам при 2-сменном обучении" },
+          { val: 2, desc: "Полная обеспеченность, современный кампус с зонами коворкинга" }
+        ]
+      },
+      {
+        id: "b1_i1",
+        name: "Оснащенность научно-исследовательских лабораторий и инновационных центров",
+        scores: [
+          { val: 0.5, desc: "Устаревшая лабораторная база, отсутствие современного оборудования" },
+          { val: 1.5, desc: "Наличие базовых лабораторий, частичное обновление оборудования" },
+          { val: 2.5, desc: "Передовые исследовательские центры, наличие уникального оборудования и технопарков" }
+        ]
+      },
+      {
+        id: "b1_i2",
+        name: "Цифровые сервисы для студентов и ППС (LMS, личные кабинеты, портал)",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Фрагментарное внедрение ИС, отсутствие полноценной LMS" },
+          { val: 1.5, desc: "Функционирует базовая LMS, электронные зачетки и журналы" },
+          { val: 2, desc: "Интегрированная цифровая экосистема, мобильное приложение, прокторинг-системы" }
+        ]
+      },
+      {
+        id: "b1_i3",
+        name: "Обеспеченность студентов местами в общежитиях",
+        scores: [
+          { val: -1, desc: "Острая нехватка мест (удовлетворенность спроса менее 50%)", isNegative: true },
+          { val: 1, desc: "Обеспечение местами от 50% до 85% нуждающихся" },
+          { val: 2, desc: "Удовлетворенность спроса более 85% или наличие программ компенсации жилья" }
+        ]
+      },
+      {
+        id: "b1_i4",
+        name: "Объем электронного библиотечного фонда и подписки на базы данных (Scopus, WoS)",
+        scores: [
+          { val: 0.5, desc: "Минимальный доступ к международным базам, преимущественно бумажный фонд" },
+          { val: 1.5, desc: "Доступ к ключевым базам данных, электронная библиотека вуза" },
+          { val: 2.5, desc: "Неограниченный доступ к Scopus, WoS, Springer, развитый собственный репозиторий" }
+        ]
+      },
+      {
+        id: "b1_i5",
+        name: "Доступность скоростного интернета и Wi-Fi в учебных зонах и общежитиях",
+        scores: [
+          { val: 0, desc: "Скорость менее 30 Мбит/с, нестабильное покрытие" },
+          { val: 1, desc: "Скорость 30-100 Мбит/с, покрытие в учебных аудиториях" },
+          { val: 2, desc: "Бесшовный скоростной Wi-Fi (более 100 Мбит/с) по всей территории кампуса" }
+        ]
+      },
+      {
+        id: "b1_i6",
+        name: "Инклюзивная доступность кампуса (безбарьерная среда)",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Частичная доступность (только пандусы на входе)" },
+          { val: 1.5, desc: "Безбарьерная среда во всех учебных корпусах и общежитиях" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "block_2",
+    title: "II. Кадровый потенциал и наука",
+    level: "ОВПО в целом",
+    indicatorsCount: 7,
+    weightLabel: "~25",
+    color: "#2563EB",
+    borderColor: "border-[#BFDBFE]",
+    hoverColor: "hover:bg-blue-50/40",
+    bgLight: "#EFF6FF",
+    indicators: [
+      {
+        id: "b2_i0",
+        name: "Доля ППС с учеными степенями (доктор наук, кандидат наук, PhD)",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Остепененность менее 40%" },
+          { val: 1.5, desc: "Остепененность от 40% до 60%" },
+          { val: 2.5, desc: "Остепененность свыше 60%" }
+        ]
+      },
+      {
+        id: "b2_i1",
+        name: "Индекс цитируемости ППС и публикации в журналах Q1/Q2 (Scopus/WoS)",
+        scores: [
+          { val: 0.5, desc: "Единичные публикации за последние 3 года" },
+          { val: 1.5, desc: "Более 0.5 публикаций на одного преподавателя в год в индексируемых базах" },
+          { val: 3, desc: "Высокая публикационная активность (более 1.0 публикации в год на ППС, высокая цитируемость)" }
+        ]
+      },
+      {
+        id: "b2_i2",
+        name: "Объем финансирования НИОКР на одного штатного преподавателя",
+        scores: [
+          { val: 0.5, desc: "НИОКР финансируется преимущественно за счет собственных средств вуза" },
+          { val: 1.5, desc: "Привлечение внешнего грантового финансирования" },
+          { val: 2.5, desc: "Высокий объем хоздоговорных и грантовых исследований (свыше 1 млн тенге на ППС)" }
+        ]
+      },
+      {
+        id: "b2_i3",
+        name: "Доля иностранных преподавателей и исследователей в штате",
+        scores: [
+          { val: 0, desc: "Иностранные преподаватели отсутствуют" },
+          { val: 1, desc: "Доля зарубежных лекторов составляет от 1% до 5%" },
+          { val: 2, desc: "Доля зарубежных лекторов и исследователей более 5%" }
+        ]
+      },
+      {
+        id: "b2_i4",
+        name: "Участие университета в международных и республиканских научных проектах",
+        scores: [
+          { val: 0.5, desc: "Участие ограничено внутривузовскими грантами" },
+          { val: 1.5, desc: "Участие в грантах министерств, АО «Финансовый центр» и международных фондов" }
+        ]
+      },
+      {
+        id: "b2_i5",
+        name: "Программы академической мобильности и стажировок ППС в ведущих мировых вузах",
+        scores: [
+          { val: 0.5, desc: "Академическая мобильность ППС отсутствует или носит единичный характер" },
+          { val: 1.5, desc: "Регулярные стажировки (более 10% ППС ежегодно проходят зарубежное обучение)" }
+        ]
+      },
+      {
+        id: "b2_i6",
+        name: "Участие ученых университета в редколлегиях авторитетных научных изданий",
+        scores: [
+          { val: 0.5, desc: "Членство в редколлегиях ограничено вестниками вуза" },
+          { val: 1.5, desc: "Представители ППС входят в редколлегии журналов, индексируемых в Scopus/WoS" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "block_3",
+    title: "III. Образовательные результаты",
+    level: "ОВПО в целом",
+    indicatorsCount: 7,
+    weightLabel: "~32",
+    color: "#D97706",
+    borderColor: "border-[#FCD34D]",
+    hoverColor: "hover:bg-amber-50/40",
+    bgLight: "#FFFBEB",
+    indicators: [
+      {
+        id: "b3_i0",
+        name: "Доля образовательных программ, прошедших международную аккредитацию",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Менее 30% образовательных программ аккредитованы международными агентствами" },
+          { val: 1.5, desc: "От 30% до 70% образовательных программ" },
+          { val: 2.5, desc: "Свыше 70% программ имеют аккредитацию в признанных зарубежных агентствах" }
+        ]
+      },
+      {
+        id: "b3_i1",
+        name: "Результаты независимого тестирования и ВОУД",
+        scores: [
+          { val: 0.5, desc: "Результаты ниже средних показателей по стране в соответствующем кластере" },
+          { val: 1.5, desc: "На уровне средних показателей ±10%" },
+          { val: 2, desc: "Результаты значительно превышают средние по стране" }
+        ]
+      },
+      {
+        id: "b3_i2",
+        name: "Доля студентов, обучающихся по программам двудипломного образования",
+        scores: [
+          { val: 0, desc: "Программы двойного диплома отсутствуют" },
+          { val: 1, desc: "Доля студентов составляет от 1% до 5%" },
+          { val: 2, desc: "Более 5% студентов обучаются по программам двойного диплома с зарубежными вузами-партнерами" }
+        ]
+      },
+      {
+        id: "b3_i3",
+        name: "Участие студентов в международных и республиканских олимпиадах и конкурсах",
+        scores: [
+          { val: 0.5, desc: "Редкое участие без призовых мест" },
+          { val: 1.5, desc: "Регулярное завоевание призовых мест на республиканских олимпиадах" },
+          { val: 2.5, desc: "Победители и призеры престижных международных конкурсов, хакатонов и олимпиад" }
+        ]
+      },
+      {
+        id: "b3_i4",
+        name: "Сохранность контингента студентов (минимальный уровень отсева)",
+        scores: [
+          { val: -1.5, desc: "Уровень отсева превышает 15% за учебный год (негативный фактор)", isNegative: true },
+          { val: 0.5, desc: "Уровень отсева в пределах 5-15%" },
+          { val: 1.5, desc: "Уровень отсева менее 5% (высокая мотивация и поддержка студентов)" }
+        ]
+      },
+      {
+        id: "b3_i5",
+        name: "Доля выпускников бакалавриата, продолживших обучение в магистратуре/докторантуре",
+        scores: [
+          { val: 0.5, desc: "Менее 10% выпускников продолжают академическую траекторию" },
+          { val: 1.5, desc: "От 10% до 25% выпускников" },
+          { val: 2, desc: "Более 25% выпускников поступают в магистратуру/докторантуру" }
+        ]
+      },
+      {
+        id: "b3_i6",
+        name: "Уровень удовлетворенности студентов образовательным процессом",
+        scores: [
+          { val: 0.5, desc: "Индекс NPS ниже 60%" },
+          { val: 1.5, desc: "Индекс NPS от 60% до 80%" },
+          { val: 2.5, desc: "Индекс NPS выше 80% (высокая оценка качества преподавания)" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "block_4",
+    title: "IV. Трудоустройство и взаимодействие с экономикой",
+    level: "ОВПО в целом",
+    indicatorsCount: 4,
+    weightLabel: "~25",
+    color: "#DB2777",
+    borderColor: "border-[#FECDD3]",
+    hoverColor: "hover:bg-pink-50/40",
+    bgLight: "#FDF2F8",
+    indicators: [
+      {
+        id: "b4_i0",
+        name: "Доля трудоустроенных выпускников в первый год после окончания (по данным ГЦВП)",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Менее 65% выпускников трудоустроены" },
+          { val: 2, desc: "От 65% до 85% выпускников" },
+          { val: 3.5, desc: "Свыше 85% выпускников успешно трудоустроены в первый год" }
+        ]
+      },
+      {
+        id: "b4_i1",
+        name: "Соответствие сферы деятельности выпускников полученной специальности (работа по профилю)",
+        isGoso: true,
+        scores: [
+          { val: 0.5, desc: "Менее 50% выпускников работают по специальности" },
+          { val: 1.5, desc: "От 50% до 75% выпускников" },
+          { val: 3, desc: "Свыше 75% выпускников трудоустроены строго по профилю подготовки" }
+        ]
+      },
+      {
+        id: "b4_i2",
+        name: "Объем коммерциализации результатов научной деятельности (патенты, лицензии, стартапы)",
+        scores: [
+          { val: 0.5, desc: "Отсутствие зарегистрированных коммерческих эффектов" },
+          { val: 1.5, desc: "Регистрация патентов, наличие единичных хоздоговорных внедрений" },
+          { val: 3, desc: "Высокий доход от коммерциализации, успешные стартапы на базе вуза" }
+        ]
+      },
+      {
+        id: "b4_i3",
+        name: "Совместные образовательные программы и базовые кафедры с индустриальными партнерами",
+        scores: [
+          { val: 0.5, desc: "Взаимодействие ограничено только прохождением практики" },
+          { val: 1.5, desc: "Функционируют совместные лаборатории и базовые кафедры крупных компаний" }
+        ]
+      }
+    ]
+  }
+];
+
+const TAB_COMPONENTS: Record<string, any> = {
+  contingent: ContingentForm,
+  finance:    FinanceForm,
+  science:    ScienceForm,
+  graduates:  GraduatesForm,
+  education:  EducationForm,
+};
+
+const TAB_LABELS: Record<string, string> = {
+  contingent: "Контингент",
+  finance:    "Финансы",
+  science:    "Наука",
+  graduates:  "Выпускники",
+  education:  "Образ. процесс",
+};
+
+export default function VipoPage() {
+  const { user } = useAuth();
+  const regions = useRegions();
+
+  // Active view tab: "dashboard" or "data-entry"
+  const [activeViewTab, setActiveViewTab] = useState<"dashboard" | "data-entry">(
+    user?.role === "data_entry" ? "data-entry" : "dashboard"
+  );
+
+  // States for expandable assessment blocks
+  const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({
+    block_1: false,
+    block_2: false,
+    block_3: false,
+    block_4: false,
+  });
+
+  // States for expandable indicators inside blocks
+  const [expandedIndicators, setExpandedIndicators] = useState<Record<string, boolean>>({});
+
+  const toggleBlock = (blockId: string) => {
+    setExpandedBlocks(prev => ({ ...prev, [blockId]: !prev[blockId] }));
+  };
+
+  const toggleIndicator = (indId: string) => {
+    setExpandedIndicators(prev => ({ ...prev, [indId]: !prev[indId] }));
+  };
+
+  // --- Data Entry Logic ---
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(
+    user?.role === "data_entry" && user.org_id ? user.org_id : null
+  );
+  const [activeFormTab, setActiveFormTab] = useState("contingent");
+
+  const { data: allOrgsResp, loading: loadingOrgs, error: orgsError } = useApi<{ items: Organisation[]; total: number }>("/admin/organisations?limit=500");
+  const allOrgs = allOrgsResp?.items ?? null;
+
+  const levelOrgs = useMemo(() => {
+    if (!allOrgs) return [];
+    return allOrgs.filter(org => org.org_type_id === 5); // 5 corresponds to Vipo
+  }, [allOrgs]);
+
+  const selectedOrg = useMemo(() => 
+    levelOrgs.find(o => o.id === selectedOrgId), 
+    [levelOrgs, selectedOrgId]
+  );
+
+  const { data: contingentResp, loading: loadingC } = useApi<{ items: any[]; total: number }>(
+    selectedOrgId ? `/organisations/${selectedOrgId}/contingent` : null
+  );
+  const contingentRecords = contingentResp?.items ?? null;
+
+  const { data: financeResp, loading: loadingF } = useApi<{ items: any[]; total: number }>(
+    selectedOrgId ? `/organisations/${selectedOrgId}/finance` : null
+  );
+  const financeRecords = financeResp?.items ?? null;
+
+  const kpis = useMemo(() => {
+    if (!contingentRecords || contingentRecords.length === 0) return null;
+    const lastC = [...contingentRecords].sort((a, b) => b.period_year - a.period_year)[0];
+    const lastF = financeRecords && financeRecords.length > 0 
+      ? [...financeRecords].sort((a, b) => b.period_year - a.period_year)[0]
+      : null;
+
+    return {
+      total_students: Number(lastC.total_count || 0),
+      new_enrolled: Number(lastC.new_enrolled || 0),
+      budget: Number(lastF?.total_income || 0),
+      payroll_pct: Number(lastF?.payroll_pct || 0),
+    };
+  }, [contingentRecords, financeRecords]);
+
+  const ActiveForm = TAB_COMPONENTS[activeFormTab];
+
+  return (
+    <>
+      {/* Page Header */}
+      <PageHeader
+        title="Высшее и послевузовское образование"
+        subtitle={activeViewTab === "dashboard" 
+          ? "Индикаторная модель развития сферы образования"
+          : `Управление и мониторинг: ${selectedOrg?.name_ru || "выберите организацию"}`}
+        actions={
+          <div className="flex p-0.5 rounded-lg bg-slate-100 shrink-0 select-none">
+            <button
+              onClick={() => setActiveViewTab("dashboard")}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                activeViewTab === "dashboard"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              Методология и мониторинг
+            </button>
+            <button
+              onClick={() => setActiveViewTab("data-entry")}
+              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                activeViewTab === "data-entry"
+                  ? "bg-white text-slate-800 shadow-sm"
+                  : "text-slate-400 hover:text-slate-600"
+              }`}
+            >
+              Ввод данных
+            </button>
+          </div>
+        }
+      />
+
+      <AnimatePresence mode="wait">
+        {activeViewTab === "dashboard" ? (
+          <motion.div
+            key="dashboard-view"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-6"
+          >
+            {/* Level Stats Bar */}
+            <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-fc-sm flex flex-col md:flex-row md:items-center gap-4">
+              <div 
+                className="w-14 h-14 rounded-xl flex items-center justify-center font-extrabold text-xs text-white shrink-0 shadow-sm"
+                style={{ backgroundColor: "#7C3AED" }}
+              >
+                ОВПО
+              </div>
+              <div className="flex-1">
+                <h2 className="text-base font-bold text-slate-800">Высшее и послевузовское образование</h2>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
+                    <b>123</b> организаций в РК
+                  </span>
+                  <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
+                    ГОЗ: <b>504</b> млрд тг
+                  </span>
+                  <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
+                    <b>4</b> блока оценки
+                  </span>
+                  <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
+                    Шкала: <b>0-100</b> баллов
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Threshold Cards Row */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="rounded-xl border border-green-200 bg-[#F0FDF4] p-4 text-green-800 shadow-fc-sm">
+                <span className="block text-xl font-bold font-display tracking-tight text-emerald-700">70-100</span>
+                <span className="block text-xs font-semibold mt-1">Ведущий</span>
+                <p className="text-xs opacity-90 mt-1">Стимул + КУ + инвест. план + наставничество</p>
+              </div>
+              <div className="rounded-xl border border-amber-200 bg-[#FFFBEB] p-4 text-amber-800 shadow-fc-sm">
+                <span className="block text-xl font-bold font-display tracking-tight text-amber-700">40-69</span>
+                <span className="block text-xs font-semibold mt-1">Развивающийся</span>
+                <p className="text-xs opacity-90 mt-1">База + план ФЦ</p>
+              </div>
+              <div className="rounded-xl border border-red-200 bg-[#FEF2F2] p-4 text-red-800 shadow-fc-sm">
+                <span className="block text-xl font-bold font-display tracking-tight text-red-700">0-39</span>
+                <span className="block text-xs font-semibold mt-1">Под наблюдением</span>
+                <p className="text-xs opacity-90 mt-1">База + риск ревизии лицензии</p>
+              </div>
+            </div>
+
+            {/* Assessment Blocks Header */}
+            <div>
+              <h3 className="text-base font-bold text-slate-800">Блоки оценки <span className="text-xs text-slate-400 font-normal ml-2">— нажмите на блок для раскрытия</span></h3>
+            </div>
+
+            {/* Grid of Blocks */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {BLOCKS_DATA.map(block => {
+                const isOpen = expandedBlocks[block.id];
+                return (
+                  <div
+                    key={block.id}
+                    className={`bg-white rounded-xl border border-slate-200 overflow-hidden shadow-fc-sm transition-all duration-200`}
+                    style={{ borderTop: `4px solid ${block.color}` }}
+                  >
+                    <div
+                      onClick={() => toggleBlock(block.id)}
+                      className={`p-4 flex items-center justify-between cursor-pointer select-none transition-colors ${block.hoverColor}`}
+                    >
+                      <div className="min-w-0 pr-4">
+                        <h4 className="text-sm font-semibold font-display leading-snug" style={{ color: block.color }}>
+                          {block.title}
+                        </h4>
+                        <span className="inline-block mt-1.5 text-[10px] font-semibold text-slate-400 bg-slate-100 px-2 py-0.5 rounded">
+                          {block.level}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <span className="text-xs text-slate-400">{block.indicatorsCount} показателей</span>
+                        <span className="text-xl font-extrabold font-display leading-none" style={{ color: block.color }}>
+                          {block.weightLabel}
+                        </span>
+                        <ChevronDown 
+                          className="w-4 h-4 text-slate-400 transition-transform duration-200" 
+                          style={{ transform: isOpen ? "rotate(180deg)" : "none" }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Expandable Indicators list */}
+                    <AnimatePresence>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: "auto" }}
+                          exit={{ height: 0 }}
+                          transition={{ duration: 0.25 }}
+                          className="overflow-hidden border-t border-slate-100 divide-y divide-slate-100"
+                        >
+                          {block.indicators.map(ind => {
+                            const isIndOpen = expandedIndicators[ind.id];
+                            return (
+                              <div key={ind.id} className="bg-slate-50/30">
+                                <div
+                                  onClick={() => toggleIndicator(ind.id)}
+                                  className="px-4 py-3 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors"
+                                >
+                                  <div className="text-xs font-semibold text-slate-700 flex items-center gap-2 flex-1 pr-4">
+                                    {ind.name}
+                                    {ind.isGoso && (
+                                      <span className="text-[9px] font-bold tracking-wider uppercase bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded border border-purple-200 shrink-0">
+                                        ГОСО
+                                      </span>
+                                    )}
+                                  </div>
+                                  <ChevronDown 
+                                    className="w-3.5 h-3.5 text-slate-400 transition-transform shrink-0" 
+                                    style={{ transform: isIndOpen ? "rotate(180deg)" : "none" }}
+                                  />
+                                </div>
+
+                                <AnimatePresence>
+                                  {isIndOpen && (
+                                    <motion.div
+                                      initial={{ height: 0, opacity: 0 }}
+                                      animate={{ height: "auto", opacity: 1 }}
+                                      exit={{ height: 0, opacity: 0 }}
+                                      className="overflow-hidden px-4 pl-8 bg-white border-t border-slate-100 space-y-1 pt-2 pb-3"
+                                    >
+                                      {ind.scores.map((score, sIdx) => (
+                                        <div
+                                          key={sIdx}
+                                          className={`flex items-start gap-2.5 p-2 rounded-lg text-xs leading-relaxed ${
+                                            score.isNegative 
+                                              ? "bg-red-50 text-red-900" 
+                                              : "bg-slate-50 text-slate-700"
+                                          }`}
+                                        >
+                                          <span 
+                                            className={`w-7 h-5 shrink-0 flex items-center justify-center font-bold text-xs rounded ${
+                                              score.isNegative 
+                                                ? "bg-red-100 text-red-700"
+                                                : "bg-emerald-100 text-emerald-700"
+                                            }`}
+                                          >
+                                            {Number(score.val) > 0 ? `+${score.val}` : score.val}
+                                          </span>
+                                          <span className="pt-0.5">{score.desc}</span>
+                                        </div>
+                                      ))}
+                                    </motion.div>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Sub-ratings weights section */}
+            <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-fc-sm">
+              <h3 className="text-base font-bold text-slate-800">Суб-рейтинги и веса блоков</h3>
+              <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                Единый Индекс — фиксированный, привязан к финансовому решению. Суб-рейтинги — веса перераспределены под конкретный аспект оценки.
+              </p>
+              
+              <div className="mt-4 border border-slate-100 rounded-lg overflow-x-auto">
+                <table className="w-full text-xs text-slate-600 border-collapse">
+                  <thead>
+                    <tr className="bg-slate-800 text-white font-semibold text-left">
+                      <th className="p-3">Суб-рейтинг</th>
+                      <th className="p-3 text-center text-[#86EFAC]">Блок I</th>
+                      <th className="p-3 text-center text-[#BFDBFE]">Блок II</th>
+                      <th className="p-3 text-center text-[#FCD34D]">Блок III</th>
+                      <th className="p-3 text-center text-[#FECDD3]">Блок IV</th>
+                      <th className="p-3 text-center">Итого</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    <tr className="font-bold bg-[#EFF6FF] border-y-2 border-blue-200">
+                      <td className="p-3 text-slate-800">Единый индекс</td>
+                      <td className="p-3 text-center text-slate-700">18%</td>
+                      <td className="p-3 text-center text-slate-700">22%</td>
+                      <td className="p-3 text-center text-slate-700">35%</td>
+                      <td className="p-3 text-center text-slate-700">25%</td>
+                      <td className="p-3 text-center text-slate-500">100%</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3 text-slate-800 font-medium">Рейтинг инфраструктуры</td>
+                      <td className="p-3 text-center">
+                        <span className="inline-block px-3 py-1 rounded font-bold text-white text-[10px]" style={{ backgroundColor: "#0D9E6E" }}>33%</span>
+                      </td>
+                      <td className="p-3 text-center">17%</td>
+                      <td className="p-3 text-center">30%</td>
+                      <td className="p-3 text-center">20%</td>
+                      <td className="p-3 text-center font-semibold text-slate-500">100%</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3 text-slate-800 font-medium">Рейтинг кадров</td>
+                      <td className="p-3 text-center">13%</td>
+                      <td className="p-3 text-center">
+                        <span className="inline-block px-3 py-1 rounded font-bold text-white text-[10px]" style={{ backgroundColor: "#2563EB" }}>37%</span>
+                      </td>
+                      <td className="p-3 text-center">30%</td>
+                      <td className="p-3 text-center">20%</td>
+                      <td className="p-3 text-center font-semibold text-slate-500">100%</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3 text-slate-800 font-medium">Рейтинг результатов</td>
+                      <td className="p-3 text-center">13%</td>
+                      <td className="p-3 text-center">17%</td>
+                      <td className="p-3 text-center">
+                        <span className="inline-block px-3 py-1 rounded font-bold text-white text-[10px]" style={{ backgroundColor: "#D97706" }}>50%</span>
+                      </td>
+                      <td className="p-3 text-center">20%</td>
+                      <td className="p-3 text-center font-semibold text-slate-500">100%</td>
+                    </tr>
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="p-3 text-slate-800 font-medium">Рейтинг трудоустройства</td>
+                      <td className="p-3 text-center">13%</td>
+                      <td className="p-3 text-center">17%</td>
+                      <td className="p-3 text-center">30%</td>
+                      <td className="p-3 text-center">
+                        <span className="inline-block px-3 py-1 rounded font-bold text-white text-[10px]" style={{ backgroundColor: "#DB2777" }}>40%</span>
+                      </td>
+                      <td className="p-3 text-center font-semibold text-slate-500">100%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="data-entry-view"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Org Selector card */}
+            <div className="card p-4 mb-6 flex flex-col md:flex-row items-center gap-4">
+              <div className="flex-1 w-full">
+                <label className="label-eyebrow mb-1.5 block">Организация</label>
+                {user?.role === "data_entry" ? (
+                  <div className="input flex items-center gap-2 font-semibold" style={{ color: "var(--text-primary)" }}>
+                    <Building className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
+                    {selectedOrg?.name_ru || "Организация не привязана"}
+                  </div>
+                ) : (
+                  <select 
+                    className="input pr-10"
+                    value={selectedOrgId || ""}
+                    onChange={(e) => setSelectedOrgId(e.target.value || null)}
+                  >
+                    <option value="">Выберите из списка ({levelOrgs.length})</option>
+                    {levelOrgs.map(org => (
+                      <option key={org.id} value={org.id}>{org.name_ru}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+              
+              {selectedOrg && (
+                <div className="flex gap-4 shrink-0">
+                  <div>
+                    <p className="label-eyebrow mb-1">Регион</p>
+                    <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                      {regions.find(r => r.id === selectedOrg.region_id)?.name_ru || "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="label-eyebrow mb-1">ID</p>
+                    <p className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{selectedOrgId?.slice(0, 8)}...</p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {loadingOrgs && !allOrgs && <Loader />}
+            {orgsError && <ErrorBox message={orgsError} />}
+
+            {!loadingOrgs && !orgsError && !selectedOrgId && levelOrgs.length === 0 && (
+              <EmptyState
+                title="Организации не найдены"
+                hint="По данному уровню образования нет организаций в системе. Добавьте их через раздел «Организации»."
+                icon={Building}
+              />
+            )}
+
+            {!loadingOrgs && !selectedOrgId && levelOrgs.length > 0 && (
+              <EmptyState
+                title="Организация не выбрана"
+                hint="Используйте селектор выше, чтобы просмотреть показатели и формы ввода"
+                icon={Building}
+              />
+            )}
+
+            {selectedOrgId && (
+              <>
+                {/* KPI Cards */}
+                {(loadingC || loadingF) ? (
+                  <SkeletonGrid count={4} />
+                ) : kpis ? (
+                  <motion.div 
+                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6"
+                    initial="hidden" animate="visible"
+                  >
+                    <StatCard 
+                      accent="navy" icon={GraduationCap} 
+                      label="Всего студентов" 
+                      value={kpis.total_students.toLocaleString("ru-RU")} 
+                      hint="Текущий контингент"
+                    />
+                    <StatCard 
+                      accent="blue" icon={TrendingUp} 
+                      label="Новый прием" 
+                      value={kpis.new_enrolled.toLocaleString("ru-RU")} 
+                      hint="В этом учебном году"
+                    />
+                    <StatCard 
+                      accent="cyan" icon={Wallet} 
+                      label="Бюджет" 
+                      value={kpis.budget > 1_000_000_000 
+                        ? `${(kpis.budget / 1_000_000_000).toFixed(1)} млрд` 
+                        : `${(kpis.budget / 1_000_000).toFixed(0)} млн`} 
+                      hint="Общий доход (₸)"
+                    />
+                    <StatCard 
+                      accent="steel" icon={Activity} 
+                      label="ФОТ" 
+                      value={`${kpis.payroll_pct}%`} 
+                      hint="Доля зарплат в бюджете"
+                    />
+                  </motion.div>
+                ) : (
+                  <div className="card p-6 mb-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
+                    По данной организации еще не подано ни одной записи.
+                  </div>
+                )}
+
+                {/* Form Tabs */}
+                <div className="mt-8">
+                  <div className="flex gap-1 mb-4 p-1 rounded-md overflow-x-auto scrollbar-thin"
+                    style={{ background: "var(--surface-mid)" }}>
+                    {['contingent', 'finance', 'science', 'graduates', 'education'].map(tab => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveFormTab(tab)}
+                        className="px-4 py-2 text-xs font-bold rounded-md transition-all"
+                        style={activeFormTab === tab ? {
+                          background: "var(--surface-card)",
+                          color: "var(--text-primary)",
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+                        } : {
+                          background: "transparent",
+                          color: "var(--text-muted)",
+                        }}
+                        onMouseEnter={e => { if (activeFormTab !== tab) (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
+                        onMouseLeave={e => { if (activeFormTab !== tab) (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
+                      >
+                        {TAB_LABELS[tab] || tab}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 card p-6">
+                    <ActiveForm 
+                      orgId={selectedOrgId} 
+                      readOnly={user?.role === "management"} 
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
