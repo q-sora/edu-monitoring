@@ -2,14 +2,6 @@
 // src/features/edu-level/levelConfig.ts
 // org_type_ids соответствуют БД: 1=ДО, 2=ДопО, 3=СО, 4=ТиППО, 5=ВиПО, 6=Общ-е, 7=ГОНС
 export const LEVEL_CONFIG = {
-  do: {
-    label: 'Дошкольное образование',
-    shortLabel: 'ДДО',
-    icon: '🏫',
-    orgTypeIds: [1],
-    tabs: ['contingent', 'finance', 'education'],
-    accentColor: 'teal',
-  },
   so: {
     label: 'Общеобразовательные школы',
     shortLabel: 'Школы',

@@ -18,6 +18,11 @@ import { OverviewPage }           from "@/features/overview/OverviewPage";
 import { NotFoundPage }           from "@/pages/NotFoundPage";
 import SchoolRatingForm from "@/features/schools/SchoolRatingForm";
 import EduLevelPage     from "@/features/edu-level/EduLevelPage";
+import PreschoolPage    from "@/features/edu-level/PreschoolPage";
+import SchoolPage       from "@/features/edu-level/SchoolPage";
+import TippoPage        from "@/features/edu-level/TippoPage";
+import DopoPage         from "@/features/edu-level/DopoPage";
+import VipoPage         from "@/features/edu-level/VipoPage";
 
 function IndexRedirect() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -42,11 +47,11 @@ export default function App() {
               <Route path="/profile"   element={<ProfilePage />} />
 
               {/* Уровни образования */}
-              <Route path="/edu/preschool"       element={<EduLevelPage level="do"    />} />
-              <Route path="/edu/school"          element={<EduLevelPage level="so"    />} />
-              <Route path="/edu/extracurricular" element={<EduLevelPage level="dopo"  />} />
-              <Route path="/edu/college"         element={<EduLevelPage level="tippo" />} />
-              <Route path="/edu/university"      element={<EduLevelPage level="vipo"  />} />
+              <Route path="/edu/preschool"       element={<PreschoolPage />} />
+              <Route path="/edu/school"          element={<SchoolPage />} />
+              <Route path="/edu/extracurricular" element={<DopoPage />} />
+              <Route path="/edu/college"         element={<TippoPage />} />
+              <Route path="/edu/university"      element={<VipoPage />} />
 
               {/* Алиасы старых маршрутов */}
               <Route path="/data/contingent" element={<Navigate to="/edu/school"     replace />} />
