@@ -21,7 +21,9 @@ const TAB_GROUPS: TabItem[][] = [
     { to: "/overview",  label: "Обзор",   color: "#60A5FA", show: r => ["superadmin","admin","management","data_entry"].includes(r) },
   ],
   [
-    { to: "/analytics/gdp",   label: "ВВП / Макроэффект", color: "#1D9E75", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/gdp",   label: "ВВП / Макроэффект",    color: "#1D9E75", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/chain", label: "Разрывы в цепочке",    color: "#DC2626", show: r => ["superadmin","admin","management"].includes(r) },
+    { to: "/analytics/roi",   label: "ROI выпускника",       color: "#7C3AED", show: r => ["superadmin","admin","management"].includes(r) },
   ],
   // Уровни образования
   [

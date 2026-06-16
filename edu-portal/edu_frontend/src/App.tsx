@@ -9,6 +9,8 @@ import { SupersetDashboardsPage } from "@/features/analytics/SupersetDashboardsP
 import { ProfilePage }            from "@/features/profile/ProfilePage";
 import { CollegesPage }           from "@/features/tippo/CollegesPage";
 import { GdpMacroPage }           from "@/features/gdp/GdpMacroPage";
+import { ChainBreaksPage }        from "@/features/chain/ChainBreaksPage";
+import { RoiGraduatePage }        from "@/features/roi/RoiGraduatePage";
 import { OverviewPage }           from "@/features/overview/OverviewPage";
 import { NotFoundPage }           from "@/pages/NotFoundPage";
 import SchoolRatingForm from "@/features/schools/SchoolRatingForm";
@@ -58,7 +60,9 @@ export default function App() {
               <Route path="/tippo/colleges" element={<CollegesPage />} />
 
               {/* ВВП / Макроэффект */}
-              <Route path="/analytics/gdp" element={<GdpMacroPage />} />
+              <Route path="/analytics/gdp"   element={<GdpMacroPage />} />
+              <Route path="/analytics/chain" element={<ChainBreaksPage />} />
+              <Route path="/analytics/roi"   element={<RoiGraduatePage />} />
             </Route>
           </Route>
 
