@@ -58,12 +58,12 @@
 - **Логи**: `docker compose logs --tail=50 api`
 - **Рестарт API**: `docker compose restart api`
 - **PSQL**: `docker compose exec -T postgres psql -U edu_user -d edu_monitoring`
-- **Build Frontend**: `npm run build` в `edu-portal/edu_frontend/`
+- **Build Frontend**: `npm run build` в `edu_frontend/`
 
 ---
 
 ## Файлы-ориентиры (References)
-- `edu-portal/edu_frontend/src/features/finance/FinanceForm.tsx` — эталон формы.
+- `edu_frontend/src/features/finance/FinanceForm.tsx` — эталон формы.
 - `edu_backend/app/schemas/finance.py` — эталон схемы Pydantic.
 - `edu_backend/app/core/gemini_models.py` — конфигурация AI.
 - `edu_backend/app/models/mixins.py` — `FullAuditMixin` (НЕ ТРОГАТЬ).

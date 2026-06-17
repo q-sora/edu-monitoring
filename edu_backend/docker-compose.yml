@@ -179,7 +179,7 @@ services:
   # ── React frontend (built with Vite, served by nginx) ─────────────────────
   frontend:
     build:
-      context: ../edu-portal/edu_frontend
+      context: ../edu_frontend
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}

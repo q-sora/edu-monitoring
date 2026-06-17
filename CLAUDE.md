@@ -84,7 +84,7 @@
 │       └── workers/
 │           ├── celery_app.py           # Celery config + beat schedule
 │           └── tasks.py               # Все Celery tasks
-└── edu-portal/edu_frontend/            # ← КОРЕНЬ ФРОНТА именно здесь
+└── edu_frontend/                        # ← КОРЕНЬ ФРОНТА именно здесь
     ├── tailwind.config.js
     └── src/
         ├── App.tsx                     # Routes
@@ -569,10 +569,10 @@ docker compose exec -T postgres psql -U edu_user -d edu_monitoring -c "\d table_
 ## Минимум для чтения в начале сессии
 
 ```
-edu-portal/edu_frontend/tailwind.config.js      # цвета
-edu-portal/edu_frontend/src/index.css            # utility классы
-edu-portal/edu_frontend/src/portal.tsx           # все страницы
-edu-portal/edu_frontend/src/features/finance/FinanceForm.tsx  # эталон формы
+edu_frontend/tailwind.config.js      # цвета
+edu_frontend/src/index.css            # utility классы
+edu_frontend/src/portal.tsx           # все страницы
+edu_frontend/src/features/finance/FinanceForm.tsx  # эталон формы
 edu_backend/app/main.py                          # структура приложения
 edu_backend/app/schemas/finance.py               # эталон схемы
 edu_backend/app/core/gemini_models.py            # AI конфигурация
