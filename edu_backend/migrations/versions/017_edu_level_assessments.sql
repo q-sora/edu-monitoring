@@ -1,4 +1,4 @@
--- Migration 013: edu-level indicator assessments
+-- Migration 017: edu-level indicator assessments
 -- Stores indicator model assessment results per organization per year.
 
 CREATE TABLE IF NOT EXISTS org_indicator_assessments (
