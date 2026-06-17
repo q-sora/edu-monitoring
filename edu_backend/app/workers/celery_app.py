@@ -72,10 +72,5 @@ celery_app.conf.update(
             "schedule": crontab(hour=1, minute=0, day_of_week="monday"),
             "args":     ("НОБД", True),                    # full sync every Monday
         },
-        "weekly-anomaly-scan": {
-            "task":     "app.workers.tasks.weekly_anomaly_scan",
-            "schedule": crontab(hour=3, minute=0, day_of_week="monday"),  # 03:00 AST Monday
-            "kwargs":   {},
-        },
     },
 )

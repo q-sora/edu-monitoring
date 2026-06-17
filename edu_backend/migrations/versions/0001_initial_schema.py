@@ -5,13 +5,10 @@ Revises:
 Create Date: 2026-04-22
 
 Notes:
-    This migration does NOT recreate tables from edu_monitoring_schema.sql.
-    The base tables are assumed to already exist (created by the .sql file).
-    This migration adds the columns introduced by our FullAuditMixin and
-    SoftDeleteMixin that are NOT in the original schema.
-    
-    If starting from scratch, run edu_monitoring_schema.sql FIRST, then
-    apply this migration.
+    Base tables are created by 0000_create_base_tables.py (which already
+    includes FullAuditMixin columns). This migration skips ADD COLUMN when
+    the 'version' column already exists (idempotency check), and then adds
+    triggers, RLS policies, and JSONB/status indexes on top.
 """
 from __future__ import annotations
 
@@ -20,7 +17,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision = "0001"
-down_revision = None
+down_revision = "0000"
 branch_labels = None
 depends_on = None
 

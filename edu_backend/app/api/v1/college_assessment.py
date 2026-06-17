@@ -116,24 +116,6 @@ async def get_overview(
     return {"by_region": [dict(r._mapping) for r in rows.fetchall()]}
 
 
-@router.get("/stats/comparison", summary="Сравнение по годам")
-async def get_year_comparison(
-    db: ReadDBSession,
-    user=Depends(require_role("superadmin", "admin", "management")),
-):
-    rows = await db.execute(text("""
-        SELECT
-            ca.period_year,
-            COUNT(DISTINCT ca.id)      AS colleges,
-            ROUND(AVG(ca.total_score), 2) AS avg_score,
-            ROUND(AVG(spec.employment_pct), 2) AS avg_employment_pct
-        FROM college_assessment ca
-        LEFT JOIN college_assessment_specialty spec ON spec.assessment_id = ca.id
-        GROUP BY ca.period_year
-        ORDER BY ca.period_year
-    """))
-    return {"by_year": [dict(r._mapping) for r in rows.fetchall()]}
-
 
 @router.get("/{assessment_id}/specialties", summary="Специальности колледжа")
 async def get_specialties(

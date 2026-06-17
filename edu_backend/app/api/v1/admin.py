@@ -1,28 +1,23 @@
 """
 api/v1/admin.py
 ─────────────────────────────────────────────────────────────────────────────
-Admin + Superadmin endpoints.
+Admin endpoints.
 
 Route groups:
-    /admin/organisations         — CRUD for organisations (Admin+)
-    /admin/pending-submissions   — Aggregated approval queue (Admin+)
-    /admin/audit-log             — Audit trail viewer (Admin+)
-    /admin/api-keys              — Token management (Superadmin only)
-    /admin/insights              — AI analytics via Gemini (Management+)
-    /admin/completeness          — Submission completeness per org (Admin+)
-    /admin/references            — Reference data (public — no auth)
+    /admin/references      — Reference data (public)
+    /admin/organisations   — Organisation list (Admin+)
+    /admin/overview-stats  — Org counts + budgets by edu level (authenticated)
 """
 from __future__ import annotations
 
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 
 from app.api.dependencies import (
     AuthenticatedUser,
-    DBSession,
     ReadDBSession,
     TokenPayload,
     require_permission,
@@ -31,7 +26,6 @@ from app.api.dependencies import (
 from app.models.finance import FinanceRecord
 from app.models.organization import Organization, Region
 from app.schemas.organization import (
-    OrganizationCreate,
     OrganizationListResponse,
     OrganizationResponse,
 )
@@ -116,26 +110,6 @@ async def list_organizations(
         limit=limit,
         offset=offset,
     )
-
-
-@router.post(
-    "/organisations",
-    response_model=OrganizationResponse,
-    status_code=status.HTTP_201_CREATED,
-    summary="Создать организацию",
-    dependencies=[Depends(require_permission("organizations.manage"))],
-)
-async def create_organization(
-    body: OrganizationCreate,
-    db: DBSession,
-    token: TokenPayload = Depends(verify_token),
-) -> OrganizationResponse:
-    org = Organization(**body.model_dump(exclude_none=True))
-    async with db.begin():
-        db.add(org)
-        await db.flush()
-        await db.refresh(org)
-    return OrganizationResponse.model_validate(org)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
