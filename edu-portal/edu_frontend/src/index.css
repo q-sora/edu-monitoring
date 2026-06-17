@@ -218,18 +218,6 @@
     font-weight: 600;
   }
 
-  /* ── Superset embed ──────────────────────────────────────────────────── */
-  .superset-embed {
-    @apply absolute inset-0 overflow-hidden;
-  }
-  .superset-embed > iframe {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    border: 0;
-  }
-
   /* ── Eyebrow label (UPPERCASE) ───────────────────────────────────────── */
   .label-eyebrow {
     @apply text-[10px] font-bold uppercase tracking-fc-eyebrow;

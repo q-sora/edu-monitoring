@@ -50,9 +50,7 @@ from app.core.redis_client import close_redis, get_redis
 from app.models.mixins import register_audit_hooks
 
 # ── Router imports ────────────────────────────────────────────────────────────
-from app.api.v1 import admin, auth, science, college_assessment
-from app.api.v1 import trajectory
-from app.api.v1.routers import DOMAIN_ROUTERS
+from app.api.v1 import admin, auth, college_assessment, trajectory
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -191,13 +189,6 @@ def create_application() -> FastAPI:
 
     # ── Routers ───────────────────────────────────────────────────────────
     API_PREFIX = "/api/v1"
-
-    # ── Science (custom router with upsert logic) ────────────────────────
-    app.include_router(science.router, prefix=API_PREFIX)
-
-    # ── Domain routers (factory-generated: contingent, finance, graduates, education)
-    for domain_router in DOMAIN_ROUTERS:
-        app.include_router(domain_router, prefix=API_PREFIX)
 
     # ── Auth + Admin ──────────────────────────────────────────────────────
     app.include_router(auth.router,               prefix=API_PREFIX)

@@ -15,7 +15,7 @@ import { CompareEduLevelsPage }   from "@/features/compare/CompareEduLevelsPage"
 import { ItDataPage }             from "@/features/itdata/ItDataPage";
 import { OverviewPage }           from "@/features/overview/OverviewPage";
 import { NotFoundPage }           from "@/pages/NotFoundPage";
-import EduLevelPage     from "@/features/edu-level/EduLevelPage";
+
 import PreschoolPage    from "@/features/edu-level/PreschoolPage";
 import SchoolPage       from "@/features/edu-level/SchoolPage";
 import TippoPage        from "@/features/edu-level/TippoPage";

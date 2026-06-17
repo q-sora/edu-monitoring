@@ -75,11 +75,6 @@ class Settings(BaseSettings):
     EPVO_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
 
-    # ── Apache Superset ────────────────────────────────────────────────────
-    SUPERSET_URL: str = "http://edu_superset:8088"
-    SUPERSET_ADMIN_USER: str = "admin"
-    SUPERSET_ADMIN_PASSWORD: str = ""
-
     # Token blacklist TTL = access token lifetime
     ACCESS_TOKEN_LIFETIME_SECONDS: int = 3600
 

@@ -204,25 +204,7 @@ services:
       - "5555:5555"
     profiles: ["monitoring"]
 
-  # ── Apache Superset (BI / dashboards) ─────────────────────────────────────
-  superset:
-    image: apache/superset:4.0.0
-    container_name: edu_superset
-    environment:
-      SUPERSET_SECRET_KEY: ${SUPERSET_SECRET_KEY:-supersecretkey32chars}
-      SUPERSET_CONFIG_PATH: /app/superset_config_override.py
-    depends_on:
-      postgres:
-        condition: service_healthy
-    ports:
-      - "8088:8088"
-    volumes:
-      - supersetdata:/app/superset_home
-      - ./superset_config_override.py:/app/superset_config_override.py:ro
-    profiles: ["visualization"]
-
 volumes:
   pgdata:
   pgdata_replica:
   redisdata:
-  supersetdata:

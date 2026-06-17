@@ -1,27 +1,10 @@
 // src/features/edu-level/VipoPage.tsx
-import React, { useState, useMemo } from "react";
-import { 
-  Building, GraduationCap, Wallet, Activity, TrendingUp,
-  ChevronDown, ChevronUp, AlertCircle, Sparkles, CheckCircle, HelpCircle
+import React, { useState } from "react";
+import {
+  ChevronDown
 } from "lucide-react";
-import { useApi, useRegions } from "@/hooks/useApi";
-import { useAuth } from "@/auth/AuthContext";
-import { PageHeader, Loader, ErrorBox, StatCard, SkeletonGrid, EmptyState } from "@/components/ui";
+import { PageHeader } from "@/components/ui";
 import { motion, AnimatePresence } from "framer-motion";
-
-// Forms
-import ContingentForm from "@/features/contingent/ContingentForm";
-import FinanceForm from "@/features/finance/FinanceForm";
-import ScienceForm from "@/features/science/ScienceForm";
-import GraduatesForm from "@/features/graduates/GraduatesForm";
-import EducationForm from "@/features/education/EducationForm";
-
-interface Organisation {
-  id: string;
-  name_ru: string;
-  org_type_id: number;
-  region_id: number;
-}
 
 interface IndicatorScore {
   val: number | string;
@@ -331,31 +314,7 @@ const BLOCKS_DATA: AssessmentBlock[] = [
   }
 ];
 
-const TAB_COMPONENTS: Record<string, any> = {
-  contingent: ContingentForm,
-  finance:    FinanceForm,
-  science:    ScienceForm,
-  graduates:  GraduatesForm,
-  education:  EducationForm,
-};
-
-const TAB_LABELS: Record<string, string> = {
-  contingent: "Контингент",
-  finance:    "Финансы",
-  science:    "Наука",
-  graduates:  "Выпускники",
-  education:  "Образ. процесс",
-};
-
 export default function VipoPage() {
-  const { user } = useAuth();
-  const regions = useRegions();
-
-  // Active view tab: "dashboard" or "data-entry"
-  const [activeViewTab, setActiveViewTab] = useState<"dashboard" | "data-entry">(
-    user?.role === "data_entry" ? "data-entry" : "dashboard"
-  );
-
   // States for expandable assessment blocks
   const [expandedBlocks, setExpandedBlocks] = useState<Record<string, boolean>>({
     block_1: false,
@@ -375,96 +334,15 @@ export default function VipoPage() {
     setExpandedIndicators(prev => ({ ...prev, [indId]: !prev[indId] }));
   };
 
-  // --- Data Entry Logic ---
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(
-    user?.role === "data_entry" && user.org_id ? user.org_id : null
-  );
-  const [activeFormTab, setActiveFormTab] = useState("contingent");
-
-  const { data: allOrgsResp, loading: loadingOrgs, error: orgsError } = useApi<{ items: Organisation[]; total: number }>("/admin/organisations?limit=500");
-  const allOrgs = allOrgsResp?.items ?? null;
-
-  const levelOrgs = useMemo(() => {
-    if (!allOrgs) return [];
-    return allOrgs.filter(org => org.org_type_id === 5); // 5 corresponds to Vipo
-  }, [allOrgs]);
-
-  const selectedOrg = useMemo(() => 
-    levelOrgs.find(o => o.id === selectedOrgId), 
-    [levelOrgs, selectedOrgId]
-  );
-
-  const { data: contingentResp, loading: loadingC } = useApi<{ items: any[]; total: number }>(
-    selectedOrgId ? `/organisations/${selectedOrgId}/contingent` : null
-  );
-  const contingentRecords = contingentResp?.items ?? null;
-
-  const { data: financeResp, loading: loadingF } = useApi<{ items: any[]; total: number }>(
-    selectedOrgId ? `/organisations/${selectedOrgId}/finance` : null
-  );
-  const financeRecords = financeResp?.items ?? null;
-
-  const kpis = useMemo(() => {
-    if (!contingentRecords || contingentRecords.length === 0) return null;
-    const lastC = [...contingentRecords].sort((a, b) => b.period_year - a.period_year)[0];
-    const lastF = financeRecords && financeRecords.length > 0 
-      ? [...financeRecords].sort((a, b) => b.period_year - a.period_year)[0]
-      : null;
-
-    return {
-      total_students: Number(lastC.total_count || 0),
-      new_enrolled: Number(lastC.new_enrolled || 0),
-      budget: Number(lastF?.total_income || 0),
-      payroll_pct: Number(lastF?.payroll_pct || 0),
-    };
-  }, [contingentRecords, financeRecords]);
-
-  const ActiveForm = TAB_COMPONENTS[activeFormTab];
-
   return (
     <>
       {/* Page Header */}
       <PageHeader
         title="Высшее и послевузовское образование"
-        subtitle={activeViewTab === "dashboard" 
-          ? "Индикаторная модель развития сферы образования"
-          : `Управление и мониторинг: ${selectedOrg?.name_ru || "выберите организацию"}`}
-        actions={
-          <div className="flex p-0.5 rounded-lg bg-slate-100 shrink-0 select-none">
-            <button
-              onClick={() => setActiveViewTab("dashboard")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                activeViewTab === "dashboard"
-                  ? "bg-white text-slate-800 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              Методология и мониторинг
-            </button>
-            <button
-              onClick={() => setActiveViewTab("data-entry")}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                activeViewTab === "data-entry"
-                  ? "bg-white text-slate-800 shadow-sm"
-                  : "text-slate-400 hover:text-slate-600"
-              }`}
-            >
-              Ввод данных
-            </button>
-          </div>
-        }
+        subtitle="Индикаторная модель развития сферы образования"
       />
 
-      <AnimatePresence mode="wait">
-        {activeViewTab === "dashboard" ? (
-          <motion.div
-            key="dashboard-view"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-            className="space-y-6"
-          >
+      <div className="space-y-6">
             {/* Level Stats Bar */}
             <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-fc-sm flex flex-col md:flex-row md:items-center gap-4">
               <div 
@@ -697,153 +575,7 @@ export default function VipoPage() {
                 </table>
               </div>
             </div>
-          </motion.div>
-        ) : (
-          <motion.div
-            key="data-entry-view"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            {/* Org Selector card */}
-            <div className="card p-4 mb-6 flex flex-col md:flex-row items-center gap-4">
-              <div className="flex-1 w-full">
-                <label className="label-eyebrow mb-1.5 block">Организация</label>
-                {user?.role === "data_entry" ? (
-                  <div className="input flex items-center gap-2 font-semibold" style={{ color: "var(--text-primary)" }}>
-                    <Building className="w-4 h-4" style={{ color: "var(--text-muted)" }} />
-                    {selectedOrg?.name_ru || "Организация не привязана"}
-                  </div>
-                ) : (
-                  <select 
-                    className="input pr-10"
-                    value={selectedOrgId || ""}
-                    onChange={(e) => setSelectedOrgId(e.target.value || null)}
-                  >
-                    <option value="">Выберите из списка ({levelOrgs.length})</option>
-                    {levelOrgs.map(org => (
-                      <option key={org.id} value={org.id}>{org.name_ru}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-              
-              {selectedOrg && (
-                <div className="flex gap-4 shrink-0">
-                  <div>
-                    <p className="label-eyebrow mb-1">Регион</p>
-                    <p className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-                      {regions.find(r => r.id === selectedOrg.region_id)?.name_ru || "—"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="label-eyebrow mb-1">ID</p>
-                    <p className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>{selectedOrgId?.slice(0, 8)}...</p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {loadingOrgs && !allOrgs && <Loader />}
-            {orgsError && <ErrorBox message={orgsError} />}
-
-            {!loadingOrgs && !orgsError && !selectedOrgId && levelOrgs.length === 0 && (
-              <EmptyState
-                title="Организации не найдены"
-                hint="По данному уровню образования нет организаций в системе. Добавьте их через раздел «Организации»."
-                icon={Building}
-              />
-            )}
-
-            {!loadingOrgs && !selectedOrgId && levelOrgs.length > 0 && (
-              <EmptyState
-                title="Организация не выбрана"
-                hint="Используйте селектор выше, чтобы просмотреть показатели и формы ввода"
-                icon={Building}
-              />
-            )}
-
-            {selectedOrgId && (
-              <>
-                {/* KPI Cards */}
-                {(loadingC || loadingF) ? (
-                  <SkeletonGrid count={4} />
-                ) : kpis ? (
-                  <motion.div 
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6"
-                    initial="hidden" animate="visible"
-                  >
-                    <StatCard 
-                      accent="navy" icon={GraduationCap} 
-                      label="Всего студентов" 
-                      value={kpis.total_students.toLocaleString("ru-RU")} 
-                      hint="Текущий контингент"
-                    />
-                    <StatCard 
-                      accent="blue" icon={TrendingUp} 
-                      label="Новый прием" 
-                      value={kpis.new_enrolled.toLocaleString("ru-RU")} 
-                      hint="В этом учебном году"
-                    />
-                    <StatCard 
-                      accent="cyan" icon={Wallet} 
-                      label="Бюджет" 
-                      value={kpis.budget > 1_000_000_000 
-                        ? `${(kpis.budget / 1_000_000_000).toFixed(1)} млрд` 
-                        : `${(kpis.budget / 1_000_000).toFixed(0)} млн`} 
-                      hint="Общий доход (₸)"
-                    />
-                    <StatCard 
-                      accent="steel" icon={Activity} 
-                      label="ФОТ" 
-                      value={`${kpis.payroll_pct}%`} 
-                      hint="Доля зарплат в бюджете"
-                    />
-                  </motion.div>
-                ) : (
-                  <div className="card p-6 mb-6 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-                    По данной организации еще не подано ни одной записи.
-                  </div>
-                )}
-
-                {/* Form Tabs */}
-                <div className="mt-8">
-                  <div className="flex gap-1 mb-4 p-1 rounded-md overflow-x-auto scrollbar-thin"
-                    style={{ background: "var(--surface-mid)" }}>
-                    {['contingent', 'finance', 'science', 'graduates', 'education'].map(tab => (
-                      <button
-                        key={tab}
-                        onClick={() => setActiveFormTab(tab)}
-                        className="px-4 py-2 text-xs font-bold rounded-md transition-all"
-                        style={activeFormTab === tab ? {
-                          background: "var(--surface-card)",
-                          color: "var(--text-primary)",
-                          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
-                        } : {
-                          background: "transparent",
-                          color: "var(--text-muted)",
-                        }}
-                        onMouseEnter={e => { if (activeFormTab !== tab) (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)"; }}
-                        onMouseLeave={e => { if (activeFormTab !== tab) (e.currentTarget as HTMLElement).style.color = "var(--text-muted)"; }}
-                      >
-                        {TAB_LABELS[tab] || tab}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="mt-4 card p-6">
-                    <ActiveForm 
-                      orgId={selectedOrgId} 
-                      readOnly={user?.role === "management"} 
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
     </>
   );
 }

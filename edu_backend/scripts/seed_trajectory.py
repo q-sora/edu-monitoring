@@ -16,7 +16,7 @@ scripts/seed_trajectory.py
 
 Запуск:
     docker compose exec api python -m scripts.seed_trajectory
-    docker compose exec api python -m scripts.seed_trajectory --org-id <UUID> --year 2024 --count 200
+    docker compose exec api python -m scripts.seed_trajectory --org-id <UUID> --year 2026 --count 200
 """
 from __future__ import annotations
 
@@ -97,14 +97,18 @@ def generate_cohort(count: int, year: int, level: str) -> list[dict]:
     random.seed(42)  # reproducible run
     enroll_year = year - (4 if level in ("bachelor", "master", "phd") else 3)
 
-    honour_n = math.floor(count * 0.25)
-    good_n   = math.floor(count * 0.42)
-    weak_n   = count - honour_n - good_n
+    faller_n = max(3, math.floor(count * 0.08))   # ЕНТ ≥100, GPA < 3.5
+    riser_n  = max(3, math.floor(count * 0.08))   # ЕНТ < 70, GPA ≥ 3.8
+    honour_n = math.floor(count * 0.17)
+    good_n   = math.floor(count * 0.40)
+    weak_n   = count - honour_n - good_n - faller_n - riser_n
 
     cohorts = [
         ("honour", honour_n, (100, 140), (3.8, 5.0), 0.08, 0.22, (280_000, 560_000)),
+        ("faller", faller_n, (100, 130), (2.0, 3.4), 0.35, 0.55, (130_000, 280_000)),
         ("good",   good_n,   ( 70,  99), (2.9, 4.5), 0.18, 0.38, (180_000, 390_000)),
-        ("weak",   weak_n,   ( 40,  69), (2.0, 3.5), 0.38, 0.58, ( 95_000, 260_000)),
+        ("weak",   weak_n,   ( 40,  69), (2.0, 3.4), 0.38, 0.58, ( 95_000, 260_000)),
+        ("riser",  riser_n,  ( 40,  65), (3.8, 4.8), 0.10, 0.20, (220_000, 420_000)),
     ]
 
     students: list[dict] = []
@@ -318,7 +322,7 @@ async def insert_student(conn, student: dict, org_id: str) -> None:
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Seed student trajectory simulation data")
     p.add_argument("--org-id",  default=None, help="UUID организации (по умолчанию: первая из БД или новая демо)")
-    p.add_argument("--year",    type=int, default=2024, help="Год выпуска когорты (default: 2024)")
+    p.add_argument("--year",    type=int, default=2026, help="Год выпуска когорты (default: 2026)")
     p.add_argument("--count",   type=int, default=120,  help="Число студентов (default: 120)")
     p.add_argument("--level",   default="bachelor",
                    choices=["tippo", "bachelor", "master", "phd"],

@@ -83,15 +83,11 @@ def _mask_iin(iin: str) -> str:
 def _traj_label(ent: Optional[int], gpa1: Optional[float]) -> str:
     if ent is None or gpa1 is None:
         return "unknown"
-    ent_band  = "excellent" if ent >= 100 else ("good" if ent >= 70 else "weak")
-    gpa_band  = "excellent" if gpa1 >= 4.0 else ("good" if gpa1 >= 3.0 else "weak")
-    if ent_band == gpa_band:
-        return "stable"
-    if ent_band == "excellent" and gpa_band != "excellent":
+    if ent >= 100 and gpa1 < 3.5:
         return "faller"
-    if ent_band == "weak" and gpa_band != "weak":
+    if ent < 70 and gpa1 >= 3.8:
         return "riser"
-    return "changed"
+    return "stable"
 
 
 _ANALYTICS_SQL = """

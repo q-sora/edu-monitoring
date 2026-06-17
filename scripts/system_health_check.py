@@ -34,7 +34,6 @@ REQUIRED_CONTAINERS = [
 
 OPTIONAL_CONTAINERS = [
     "edu_frontend",
-    "edu_superset",
 ]
 
 # ── Пороги ────────────────────────────────────────────────────────────────────
