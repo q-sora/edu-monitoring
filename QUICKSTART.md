@@ -1,33 +1,22 @@
 # Как подключить Claude Code к серверу — быстрый старт
 
-У тебя 3 файла:
-
-| Файл | Назначение |
-|---|---|
-| `CLAUDE.md` | **Постоянный контекст**. Кладётся в корень проекта на сервере. Claude Code читает его автоматически при каждом запуске. |
-| `CLAUDE_CODE_PROMPT.md` | **Промпт для первой сессии**. Копируешь его содержимое и вставляешь в чат с Claude Code один раз. |
-| `.env.test` (создашь сам) | **Пароли для smoke-тестов**. НЕ коммитится в git. Шаблон ниже. |
-
 ## Шаг 1. Установить Claude Code на сервере
-
-Если ещё не установлен:
 
 ```bash
 ssh root@192.168.13.245
 
-# Способ 1 (рекомендуется): native installer, без зависимостей
+# Способ 1 (рекомендуется): native installer
 curl -fsSL https://claude.ai/install.sh | bash
 
 # Способ 2: через npm (требует Node.js 18+)
-# ВАЖНО: НЕ через sudo — может сломать права. Используй nvm если ругается на permissions.
+# НЕ через sudo — может сломать права. Используй nvm если ругается на permissions.
 npm install -g @anthropic-ai/claude-code
 
 # Проверка
 claude --version
 ```
 
-При первом запуске Claude Code откроет браузер для OAuth-авторизации. На сервере без
-браузера — задай API key переменной окружения:
+При первом запуске Claude Code откроет браузер для OAuth-авторизации. На сервере без браузера — задай API key:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
@@ -36,57 +25,7 @@ export ANTHROPIC_API_KEY=sk-ant-...
 
 API key берёшь на console.anthropic.com.
 
-## Шаг 2. Создать `.env.test` для smoke-тестов
-
-**Это важно для безопасности.** Промпт в `CLAUDE_CODE_PROMPT.md` написан так, что пароль
-суперадмина читается из `.env.test` — НЕ из самого промпта или командной строки. Это
-защищает от попадания пароля в bash history и в `/proc/*/cmdline`.
-
-```bash
-cat > /opt/edu-monitoring/.env.test <<'EOF'
-# Пароли для smoke-тестов после деплоя.
-# НЕ коммитить в git — этот файл должен быть в .gitignore.
-#
-# ВАЖНО: используй ОДИНАРНЫЕ кавычки вокруг пароля. В двойных bash сделает
-# substitution для $, ! и backticks — пароль с этими символами получит
-# unexpected результат при `source .env.test`.
-TEST_SUPERADMIN_PASSWORD='ВСТАВЬ_СВОЙ_ПАРОЛЬ_СУПЕРАДМИНА_СЮДА'
-EOF
-
-# Открой и подставь настоящий пароль (одиночные кавычки!)
-nano /opt/edu-monitoring/.env.test
-
-chmod 600 /opt/edu-monitoring/.env.test  # только владелец может читать
-
-# Проверь что подгружается
-source /opt/edu-monitoring/.env.test
-echo "${TEST_SUPERADMIN_PASSWORD:0:3}***"   # покажет первые 3 символа + ***
-unset TEST_SUPERADMIN_PASSWORD
-```
-
-Проверь что `.gitignore` его игнорирует:
-
-```bash
-cd /opt/edu-monitoring
-grep -q "^.env.test$" .gitignore || echo ".env.test" >> .gitignore
-grep -q "^\*.env\*$" .gitignore || echo "*.env*" >> .gitignore
-```
-
-## Шаг 3. Положить CLAUDE.md в корень проекта
-
-```bash
-# С твоего ПК — закинуть на сервер
-scp CLAUDE.md root@192.168.13.245:/opt/edu-monitoring/CLAUDE.md
-
-# Или прямо на сервере, если ты там
-nano /opt/edu-monitoring/CLAUDE.md   # вставь содержимое
-```
-
-Этот файл Claude Code будет читать автоматически каждый раз когда запускается в
-`/opt/edu-monitoring/`. То есть постоянный контекст про брендбук, конвенции, стек —
-не надо повторять.
-
-## Шаг 4. Запустить первую сессию
+## Шаг 2. Запустить первую сессию
 
 ```bash
 ssh root@192.168.13.245
@@ -94,85 +33,80 @@ cd /opt/edu-monitoring
 claude
 ```
 
-После запуска Claude Code:
+Claude Code прочитает `CLAUDE.md` автоматически — постоянный контекст про стек, брендбук, конвенции загружается сам при каждом запуске из этой директории.
 
-1. Прочитает `CLAUDE.md` сам
-2. Скажет «How can I help?» или похожее
-3. **Тогда вставляешь содержимое `CLAUDE_CODE_PROMPT.md`** одним сообщением
+## Шаг 3. Bootstrap суперадмина (первый деплой)
 
-Это запустит Шаг 0 → Шаг 1 (smoke-test) → Шаг 2 (Pydantic-схемы) → потом спросит
-тебя что делать дальше из 5 вариантов roadmap.
+```bash
+cd /opt/edu-monitoring/edu_backend
+# Убедись что BOOTSTRAP_SUPERADMIN_EMAIL и BOOTSTRAP_SUPERADMIN_PASSWORD заданы в .env
+docker compose run --rm api python -m scripts.create_superadmin --auto
+```
 
-## Шаг 5. Дальнейшие сессии
-
-Когда захочешь продолжить работу:
+## Шаг 4. Дальнейшие сессии
 
 ```bash
 ssh root@192.168.13.245
 cd /opt/edu-monitoring
 
-claude --continue           # = claude -c — продолжить последнюю сессию в этой папке
-# или
-claude --resume             # = claude -r — interactive picker всех сессий
-# или
-claude                       # начать новую (CLAUDE.md всё равно подгрузится)
+claude --continue    # продолжить последнюю сессию
+claude --resume      # interactive picker всех сессий
+claude               # начать новую (CLAUDE.md всё равно подгрузится)
 ```
 
-Подтверждено в актуальных доках Claude Code (апрель 2026): сессии хранятся в
-`~/.claude/projects/` per-project, можно резюмировать с полным контекстом. Команда
-`/rename` внутри сессии — даёт ей человекочитаемое имя для будущего поиска.
+Сессии хранятся в `~/.claude/projects/` per-project. Команда `/rename` внутри сессии — даёт ей человекочитаемое имя.
+
+---
 
 ## Полезные команды Claude Code
 
 | Команда | Что делает |
 |---|---|
 | `/help` | список команд |
-| `/clear` | очистить контекст текущей сессии (CLAUDE.md остаётся) |
-| `/init` | создать или обновить CLAUDE.md (но ты уже создал свой) |
-| `/permissions` | разрешения на команды (можно дать blanket-allow на bash) |
+| `/clear` | очистить контекст сессии (CLAUDE.md остаётся) |
+| `/permissions` | разрешения на команды |
 | `/cost` | сколько токенов потрачено |
 | `Ctrl+C` дважды | прервать выполнение |
 
-## Что важно понимать про Claude Code
+---
 
-1. **Доступ к bash и файлам** — он может выполнять любые команды на сервере.
-   Если боишься — запускай в отдельном пользователе с ограниченными правами,
-   не от root. Или используй `--allowedTools` чтобы ограничить.
+## Что важно понимать
 
-2. **Контекст ограничен** (200k токенов). Длинные сессии нужно разбивать.
-   `/clear` сбрасывает историю но оставляет CLAUDE.md.
+1. **Доступ к bash и файлам** — может выполнять любые команды на сервере. Не запускай от root без необходимости.
 
-3. **Не забывает между сессиями только то что в CLAUDE.md и в коде.**
-   Решения которые ты дал ему словесно — забудутся. Если что-то важное —
-   проси записывать в CLAUDE.md или в комментарии в коде.
+2. **Контекст ограничен** (200k токенов). Длинные сессии разбивай. `/clear` сбрасывает историю но оставляет CLAUDE.md.
 
-4. **Может коммитить в git если разрешишь.** Я в промпте написал чтобы делал
-   маленькие коммиты — он сам предложит, ты подтверждаешь.
+3. **Между сессиями помнит только то что в CLAUDE.md и в коде.** Важные решения проси записывать в CLAUDE.md.
 
-5. **Стоит денег** (Anthropic API). При длительной работе следи за `/cost`.
-   На задачах вроде «починить формы и сделать аналитику» — обычно $5-15.
+4. **Стоит денег** (Anthropic API). Следи за `/cost`.
+
+---
 
 ## Если что-то пойдёт не так
 
-- Claude Code сделал что-то не то → откатывайся через git: `git reset --hard HEAD~1`
-  или `git checkout -- file.tsx`
-- Контейнер упал после изменений → `docker compose logs --tail=100 <service>` и копируешь
-  Claude Code, он починит
-- Не понимает контекст → проверь что `CLAUDE.md` лежит именно в `/opt/edu-monitoring/`
-  (не в подпапке), и что ты запускаешь `claude` из этой директории
+```bash
+# Claude Code сделал что-то не то
+git reset --hard HEAD~1
+# или откат одного файла
+git checkout -- path/to/file.tsx
 
-## Дополнительные настройки (опционально)
+# Контейнер упал
+docker compose logs --tail=100 api
 
-### Ограничить доступ только к нужным инструментам
+# Не понимает контекст — проверь что CLAUDE.md лежит в /opt/edu-monitoring/ (не в подпапке)
+```
+
+---
+
+## Ограничение доступа (опционально)
+
+### Только нужные инструменты
 
 ```bash
 claude --allowedTools="Bash,Read,Edit,Write,Grep,Glob"
 ```
 
 ### Постоянные разрешения через `.claude/settings.json`
-
-Claude Code читает `.claude/settings.json` из корня проекта (а не из `~/.config/...`).
-Создай `/opt/edu-monitoring/.claude/settings.json`:
 
 ```bash
 mkdir -p /opt/edu-monitoring/.claude
@@ -186,48 +120,24 @@ cat > /opt/edu-monitoring/.claude/settings.json <<'EOF'
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(grep:*)",
-      "Bash(find:*)",
       "Read(**)",
       "Grep(**)",
       "Glob(**)"
     ],
     "deny": [
       "Bash(rm -rf /*)",
-      "Bash(rm -rf ~)",
       "Bash(docker compose down -v)",
-      "Bash(docker volume rm:*)",
-      "Bash(dropdb:*)",
-      "Bash(DROP DATABASE:*)"
+      "Bash(docker volume rm:*)"
     ]
   }
 }
 EOF
 ```
 
-Закоммить этот файл — он шарится между всеми кто работает с проектом. **НЕ помещай**
-сюда секреты и пароли.
-
-### Опасный режим `--dangerously-skip-permissions`
-
-Для CI/CD или хорошо контейнеризованных окружений можно вообще отключить промпты:
+### Режим без промптов (для CI)
 
 ```bash
 claude --dangerously-skip-permissions
 ```
 
-⚠ На production-сервере под root так лучше **не делать**. Используй allowlist.
-
-## Альтернатива — Cursor / Cline / другие IDE
-
-Если не хочешь именно Claude Code в терминале — те же файлы (`CLAUDE.md` и промпт)
-работают с:
-
-- **Cursor IDE** — тот же `CLAUDE.md` через `.cursorrules` или скопировать содержимое в
-  Cursor settings → Rules for AI
-- **Cline (VSCode extension)** — `CLAUDE.md` копируется в `.clinerules`
-- **Continue.dev** — через `.continuerules`
-
-Главное — Claude (или другая модель) должна получить контекст в начале сессии.
+⚠ На production под root — не рекомендуется. Используй allowlist.

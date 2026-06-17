@@ -1,69 +1,68 @@
 # GEMINI.md — EDU Monitoring System
 
-> Этот файл является обязательной инструкцией для Gemini CLI.
-> Основан на `CLAUDE.md` и дополнен системными требованиями Gemini CLI.
+> Обязательная инструкция для Gemini CLI. Основана на `CLAUDE.md`.
 
-## ⚠ СТРОЖАЙШИЙ ЗАПРЕТ (Core Mandate)
+## ⚠ СТРОЖАЙШИЙ ЗАПРЕТ
+
 **Слово «МОН РК» и любые упоминания Министерства образования и науки РК СТРОГО ЗАПРЕЩЕНЫ.**
 Используй только: «система АО „Финансовый центр"», «система мониторинга», «платформа ФЦ».
 Это касается кода, комментариев, документации и ответов пользователю.
 
 ---
 
-## Стек и Окружение
-- **Backend**: FastAPI + SQLAlchemy 2.0 async + PostgreSQL 16 + Celery + Redis.
-- **Frontend**: React 18 + TypeScript + Vite + Tailwind.
-- **AI**: Google Gemini (flash/pro/flash-lite) — **ТОЛЬКО** через `edu_backend/app/core/gemini_models.py`.
-- **Docker**: Использовать `docker compose` (v2). Команды запускать из `edu_backend/`.
+## Стек и окружение
+
+- **Backend**: FastAPI + SQLAlchemy 2.0 async + PostgreSQL 16 + Celery + Redis
+- **Frontend**: React 18 + TypeScript + Vite + Tailwind
+- **Docker**: `docker compose` (v2, без дефиса). Команды запускать из `edu_backend/`
 
 ---
 
-## Приоритетные правила разработки
+## Правила разработки
 
-### 1. Исследование перед действием (Research First)
-- Прежде чем править БД, всегда проверяй реальную схему: `docker compose exec -T postgres psql -U edu_user -d edu_monitoring -c "\d table_name"`. ORM-модели могут быть неполными.
-- Перед правкой фронтенда изучи `src/portal.tsx` (основной файл страниц) и `src/features/` (формы).
+### 1. Исследование перед действием
 
-### 2. Хирургические правки (Surgical Edits)
-- Предпочитай `replace` для точечных изменений.
-- Не создавай новые файлы, если логика умещается в существующих (например, в `portal.tsx`).
-- Соблюдай Brandbook: используй токены `fc-navy`, `fc-blue` и т.д. из `tailwind.config.js` и утилиты из `index.css`.
+- Перед правкой БД проверяй реальную схему: `\d table_name` в psql — ORM-модели неполные
+- Перед правкой фронтенда смотри `src/App.tsx` (маршруты) и `src/features/` (компоненты)
 
-### 3. Backend & API
-- Все API-функции — `async def`.
-- Pydantic V2: `model_config = ConfigDict(extra="forbid")`.
-- Денежные поля — `Decimal`.
-- SQLAlchemy: Не используй `:param::type`, только `CAST(:param AS type)`.
-- После правок бэкенда: `docker compose restart api`.
+### 2. Backend
 
-### 4. Frontend
-- Используй `useFormContext` в подкомпонентах.
-- Валидация перед завершением: `npm run type-check` (или `tsc --noEmit`).
-- После правок фронта: `docker compose build frontend && docker compose --profile frontend up -d --force-recreate frontend`.
+- Все API-функции — `async def`
+- Pydantic V2: `model_config = ConfigDict(extra="forbid")`
+- Денежные поля — `Decimal`, никогда `float`
+- SQLAlchemy text(): `CAST(:param AS jsonb)` — никаких `:param::jsonb`
+- Sessions: `DBSession` (write + RLS), `ReadDBSession` (GET endpoints)
+- После правок: `docker compose restart api`
 
-### 5. Celery & Workers
-- Воркеры не используют live mount. После любых изменений в `services/` или `workers/`:
-  `docker compose build celery_worker && docker compose up -d --force-recreate celery_worker`.
+### 3. Frontend
 
----
+- Брендбук: токены `fc-navy`, `fc-blue`, `fc-cyan`, `fc-steel`, `fc-purple` из `tailwind.config.js`
+- Утилиты из `index.css`: `.btn-primary`, `.card`, `.pill`, `.label-eyebrow` и т.д. — не хардкодить Tailwind напрямую
+- Проверка типов: `tsc --noEmit`
+- После правок: `docker compose build frontend && docker compose --profile frontend up -d --force-recreate frontend`
 
-## Процесс верификации (Validation)
-- **Bug Fixes**: Сначала воспроизведи баг тестом или скриптом.
-- **Tests**: Всегда ищи и обновляй связанные тесты в `edu_backend/tests/`.
-- **Linter**: Проверяй код перед сдачей.
+### 4. Celery
+
+- Воркер — запечённый образ, не live mount
+- После изменений в `workers/`: `docker compose build celery_worker && docker compose up -d --force-recreate celery_worker`
 
 ---
 
-## Полезные команды (Cheat Sheet)
-- **Логи**: `docker compose logs --tail=50 api`
-- **Рестарт API**: `docker compose restart api`
-- **PSQL**: `docker compose exec -T postgres psql -U edu_user -d edu_monitoring`
-- **Build Frontend**: `npm run build` в `edu_frontend/`
+## Полезные команды
+
+```bash
+docker compose logs --tail=50 api
+docker compose restart api
+docker compose exec -T postgres psql -U edu_user -d edu_monitoring
+docker compose exec -T postgres psql -U edu_user -d edu_monitoring -c "\d table_name"
+```
 
 ---
 
-## Файлы-ориентиры (References)
-- `edu_frontend/src/features/finance/FinanceForm.tsx` — эталон формы.
-- `edu_backend/app/schemas/finance.py` — эталон схемы Pydantic.
-- `edu_backend/app/core/gemini_models.py` — конфигурация AI.
-- `edu_backend/app/models/mixins.py` — `FullAuditMixin` (НЕ ТРОГАТЬ).
+## Файлы-ориентиры
+
+- `edu_frontend/src/App.tsx` — маршруты
+- `edu_frontend/src/features/tippo/CollegesPage.tsx` — пример страницы
+- `edu_backend/app/api/v1/college_assessment.py` — пример endpoints
+- `edu_backend/app/schemas/finance.py` — эталон схемы Pydantic
+- `edu_backend/app/models/mixins.py` — `FullAuditMixin` (НЕ ТРОГАТЬ)
