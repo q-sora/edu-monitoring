@@ -31,8 +31,6 @@ ORG_TYPE_LEVEL = {
     "СО":    "SO",
     "ТиППО": "TPPO",
     "ВиПО":  "VIPO",
-    "Общ-е": None,   # Общежития — коэффициенты не определены
-    "ГОНС":  None,   # ГОНС — не входит в систему коэффициентов
 }
 
 SUPERADMIN_ID = "5222215e-4fa6-4f9b-b3d2-8d783e5993da"
@@ -237,7 +235,7 @@ async def main():
             type_code = org["type_code"]
             lvl = ORG_TYPE_LEVEL.get(type_code)
             if lvl is None:
-                continue  # Общежития и ГОНС — пропускаем
+                continue
             level_defs = defs_by_level.get(lvl, [])
             if not level_defs:
                 continue

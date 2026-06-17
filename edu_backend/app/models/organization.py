@@ -30,7 +30,7 @@ from app.core.database import Base
 # ─────────────────────────────────────────────────────────────────────────────
 
 class OrgType(Base):
-    """Типы образовательных организаций: ДО, ДопО, СО, ТиППО, ВиПО, Общ-е, ГОНС"""
+    """Типы образовательных организаций: ДО, ДопО, СО, ТиППО, ВиПО"""
     __tablename__ = "org_types"
 
     id:          Mapped[int]           = mapped_column(Integer, primary_key=True)

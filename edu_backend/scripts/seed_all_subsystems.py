@@ -1,7 +1,7 @@
 """
 scripts/seed_all_subsystems.py
 ─────────────────────────────────────────────────────────────────────────────
-Создаёт организации для ВСЕХ 7 подсистем образования + данные 2020-2025.
+Создаёт организации для всех 5 подсистем образования + данные 2020-2025.
 
 Подсистемы:
   1. ДО    — Дошкольное образование (детские сады)
@@ -9,8 +9,6 @@ scripts/seed_all_subsystems.py
   3. СО    — Среднее образование (школы, НИШ)
   4. ТиППО — Техническое и профессиональное образование (колледжи)
   5. ВиПО  — Высшее и послевузовское образование (уже есть, пропускаем)
-  6. Общ-е — Общежития / студенческое жильё
-  7. ГОНС  — ГОНС Келешек (операторы системы накоплений)
 
 Запуск:
     docker compose exec api python -m scripts.seed_all_subsystems
@@ -39,7 +37,7 @@ SOURCE_ID = 1
 YEARS = list(range(2020, 2026))
 
 # org_type_id из БД
-OT = {"ДО": 1, "ДопО": 2, "СО": 3, "ТиППО": 4, "ВиПО": 5, "Общ-е": 6, "ГОНС": 7}
+OT = {"ДО": 1, "ДопО": 2, "СО": 3, "ТиППО": 4, "ВиПО": 5}
 # ownership_form_id
 OF = {"state": 1, "private": 2, "ppp": 3, "municipal": 4, "national": 5}
 # region_id (из БД)
@@ -98,21 +96,6 @@ NEW_ORGS = [
     {"bin": "200400000406", "name_ru": 'Колледж ИТ и связи г. Алматы',         "org_type": "ТиППО", "ownership": "private",  "region": "Алматы",        "size": "medium"},
     {"bin": "200400000407", "name_ru": 'Транспортный колледж г. Шымкент',       "org_type": "ТиППО", "ownership": "state",    "region": "Шымкент",       "size": "small"},
     {"bin": "200400000408", "name_ru": 'Горно-металлургический колледж КарТУ',  "org_type": "ТиППО", "ownership": "ppp",      "region": "Карагандинская","size": "medium"},
-
-    # ── Общ-е: Общежития / студенческое жильё ───────────────────────────────
-    {"bin": "200600000601", "name_ru": 'Студенческое общежитие КазНУ №1',   "org_type": "Общ-е", "ownership": "state",    "region": "Алматы",  "size": "large"},
-    {"bin": "200600000602", "name_ru": 'Студгородок Назарбаев Университет', "org_type": "Общ-е", "ownership": "national", "region": "Астана",  "size": "large"},
-    {"bin": "200600000603", "name_ru": 'Общежитие ЕНУ №2 г. Астана',       "org_type": "Общ-е", "ownership": "state",    "region": "Астана",  "size": "medium"},
-    {"bin": "200600000604", "name_ru": 'Студенческий кампус КарТУ',         "org_type": "Общ-е", "ownership": "state",    "region": "Карагандинская","size": "medium"},
-    {"bin": "200600000605", "name_ru": 'Молодёжный кампус "Жастар" Алматы', "org_type": "Общ-е", "ownership": "private",  "region": "Алматы",  "size": "small"},
-    {"bin": "200600000606", "name_ru": 'Общежитие КазНТУ г. Алматы',       "org_type": "Общ-е", "ownership": "state",    "region": "Алматы",  "size": "medium"},
-
-    # ── ГОНС: ГОНС Келешек ──────────────────────────────────────────────────
-    {"bin": "200700000701", "name_ru": 'АО "Отбасы банк" — оператор ГОНС',      "org_type": "ГОНС", "ownership": "state",   "region": "Астана", "size": "elite"},
-    {"bin": "200700000702", "name_ru": 'АО "Халык Банк" — оператор ГОНС',       "org_type": "ГОНС", "ownership": "private",  "region": "Астана", "size": "large"},
-    {"bin": "200700000703", "name_ru": 'АО "Kaspi Bank" — оператор Келешек',    "org_type": "ГОНС", "ownership": "private",  "region": "Алматы", "size": "large"},
-    {"bin": "200700000704", "name_ru": 'АО "ForteBank" — оператор ГОНС',        "org_type": "ГОНС", "ownership": "private",  "region": "Алматы", "size": "medium"},
-    {"bin": "200700000705", "name_ru": 'АО "Jusan Bank" — оператор Келешек',    "org_type": "ГОНС", "ownership": "private",  "region": "Астана", "size": "medium"},
 ]
 
 # Профили размера → базовые числа
@@ -271,29 +254,6 @@ def gen_contingent_tippo(org_id: str, year: int, size: str) -> dict:
         ],
         **base_audit(year),
     )
-
-def gen_contingent_obsh(org_id: str, year: int, size: str) -> dict:
-    """Общежитие: количество проживающих."""
-    p = SIZE[size]
-    total = rint(100, 1000) if size == "large" else rint(50, 400)
-    return dict(
-        org_id=org_id, source_id=SOURCE_ID,
-        snapshot_date=date(year, 12, 31),
-        total_count=total, new_enrolled=int(total * 0.40), withdrawn=int(total * 0.35),
-        bachelor_count=int(total * 0.70), master_count=int(total * 0.20),
-        phd_count=int(total * 0.05), full_time_count=total, distance_count=0,
-        budget_count=int(total * 0.55), paid_count=int(total * 0.45),
-        kz_lang_count=int(total * 0.55), ru_lang_count=int(total * 0.35),
-        en_lang_count=int(total * 0.07), other_lang_count=max(0, int(total * 0.03)),
-        foreign_count=int(total * 0.05),
-        many_children_count=0, low_income_count=int(total * 0.10),
-        disabled_count=int(total * 0.02), orphan_count=int(total * 0.03), oop_count=0,
-        privileged_share=rnd(10, 20),
-        boarding_school_count=0, absences_count=0,
-        by_grade_json={}, by_specialty_json={}, prize_winners_json=[],
-        **base_audit(year),
-    )
-
 
 def gen_finance_do(org_id: str, year: int, size: str) -> dict:
     """ДО: небольшой бюджет, коммунальные, питание, зарплата."""
@@ -469,94 +429,6 @@ def gen_finance_tippo(org_id: str, year: int, size: str) -> dict:
         ],
         **base_audit(year),
     )
-
-def gen_finance_obsh(org_id: str, year: int, size: str) -> dict:
-    """Общежитие: коммунальные, питание, капремонт."""
-    annual = Decimal(rint(500, 3000) if size == "large" else rint(150, 800)) * Decimal("1000000")
-    return dict(
-        org_id=org_id, source_id=SOURCE_ID,
-        period_year=year, period_month=None,
-        annual_budget=annual,
-        state_order_volume=annual * rnd(0.30, 0.55),
-        extra_budget_income=annual * rnd(0.35, 0.55),
-        per_capita_norm=rnd(80000, 200000),
-        state_order_start_date=date(year, 1, 1),
-        state_order_end_date=date(year, 12, 31),
-        state_order_planned_amount=annual * rnd(0.28, 0.57),
-        vouchers_issued=0,
-        payments_to_suppliers=annual * rnd(0.08, 0.20),
-        violations_info=None, return_notification_amount=Decimal("0"), return_reason=None,
-        expenses_payroll=annual * rnd(0.30, 0.45),
-        expenses_utilities=annual * rnd(0.20, 0.35),
-        expenses_antiterror=annual * rnd(0.005, 0.015),
-        expenses_food=annual * rnd(0.10, 0.20),
-        expenses_medical=annual * rnd(0.01, 0.03),
-        expenses_retraining=annual * rnd(0.005, 0.02),
-        expenses_olympiads=Decimal("0"),
-        expenses_extra_education=Decimal("0"),
-        expenses_special_equipment=annual * rnd(0.03, 0.10),
-        expenses_transport=annual * rnd(0.01, 0.03),
-        expenses_rnd=Decimal("0"),
-        expenses_scholarships=Decimal("0"),
-        expenses_boarding=annual * rnd(0.10, 0.20),
-        circle_price_per_session=Decimal("0"),
-        paid_services_price=rnd(15000, 80000),
-        paid_vs_free_ratio=rnd(0.40, 0.70),
-        budget_execution_report_url=f"https://edu.gov.kz/reports/{year}/{org_id}.pdf",
-        payment_orders_count=rint(40, 300),
-        financing_requests_count=rint(15, 100),
-        funding_sources_json=[
-            {"name": "Плата за проживание", "amount": float(annual * rnd(0.35, 0.55)), "share": float(rnd(35, 55))},
-            {"name": "Субсидии ВУЗа/МОН", "amount": float(annual * rnd(0.30, 0.50)), "share": float(rnd(30, 50))},
-        ],
-        **base_audit(year),
-    )
-
-def gen_finance_gons(org_id: str, year: int, size: str) -> dict:
-    """ГОНС: накопительные вклады, государственная премия, объём системы."""
-    annual = Decimal(rint(50000, 200000) if size in ("elite","large") else rint(10000, 60000)) * Decimal("1000000")
-    deposits = annual * rnd(0.80, 1.20)
-    state_premium = deposits * rnd(0.05, 0.075)  # ГОНС: 5-7.5% государственная премия
-    return dict(
-        org_id=org_id, source_id=SOURCE_ID,
-        period_year=year, period_month=None,
-        annual_budget=annual,
-        state_order_volume=state_premium,
-        extra_budget_income=deposits * rnd(0.03, 0.06),
-        per_capita_norm=rnd(500000, 2000000),
-        state_order_start_date=date(year, 1, 1),
-        state_order_end_date=date(year, 12, 31),
-        state_order_planned_amount=state_premium * rnd(0.95, 1.05),
-        vouchers_issued=rint(5000, 50000),
-        payments_to_suppliers=annual * rnd(0.01, 0.05),
-        violations_info=None, return_notification_amount=annual * rnd(0.0005, 0.002), return_reason=None,
-        expenses_payroll=annual * rnd(0.02, 0.05),
-        expenses_utilities=annual * rnd(0.001, 0.005),
-        expenses_antiterror=Decimal("0"),
-        expenses_food=Decimal("0"),
-        expenses_medical=Decimal("0"),
-        expenses_retraining=annual * rnd(0.001, 0.003),
-        expenses_olympiads=Decimal("0"),
-        expenses_extra_education=Decimal("0"),
-        expenses_special_equipment=annual * rnd(0.005, 0.02),
-        expenses_transport=annual * rnd(0.001, 0.003),
-        expenses_rnd=Decimal("0"),
-        expenses_scholarships=deposits * rnd(0.70, 0.90),  # выплаченные вклады при поступлении
-        expenses_boarding=Decimal("0"),
-        circle_price_per_session=Decimal("0"),
-        paid_services_price=Decimal("0"),
-        paid_vs_free_ratio=Decimal("0"),
-        budget_execution_report_url=f"https://edu.gov.kz/reports/{year}/{org_id}-gons.pdf",
-        payment_orders_count=rint(500, 10000),
-        financing_requests_count=rint(100, 2000),
-        funding_sources_json=[
-            {"name": "Накопительные вклады граждан", "amount": float(deposits), "share": float(rnd(75, 85))},
-            {"name": "Государственная премия ГОНС", "amount": float(state_premium), "share": float(rnd(5, 8))},
-            {"name": "Инвестиционный доход", "amount": float(deposits * rnd(0.04, 0.07)), "share": float(rnd(4, 7))},
-        ],
-        **base_audit(year),
-    )
-
 
 def gen_science_minimal(org_id: str, year: int, size: str) -> dict:
     """Наука для ТиППО/ДО/ДопО/СО: минимальные показатели."""
@@ -796,52 +668,6 @@ def gen_education_tippo(org_id: str, year: int, size: str) -> dict:
         **base_audit(year),
     )
 
-def gen_education_obsh(org_id: str, year: int, size: str) -> dict:
-    """Общежитие: минимальные образовательные данные (не профильное)."""
-    return dict(
-        org_id=org_id, source_id=SOURCE_ID,
-        snapshot_date=date(year, 12, 31),
-        mandatory_programs_count=0, optional_programs_count=rint(1, 5),
-        international_programs_count=0, has_developing_environment=False,
-        startup_projects_count=0,
-        additional_programs_json=[
-            {"name": "Программа адаптации первокурсников", "hours": 36, "enrolled": rint(50, 200), "certified_pct": 100.0}
-        ],
-        circles_sections_json=[
-            {"name": random.choice(["Спортзал","Шахматный клуб","Библиотека"]),
-             "type": "досуг", "participants": rint(10, 80), "price_per_session": 0.0}
-            for _ in range(rint(1, 4))
-        ],
-        olympiad_participation_json=[],
-        parent_survey_results_json={},
-        academic_mobility_json={},
-        academic_performance_json={},
-        practice_partners_json=[],
-        **base_audit(year),
-    )
-
-def gen_education_gons(org_id: str, year: int, size: str) -> dict:
-    """ГОНС: обучающие мероприятия для вкладчиков."""
-    return dict(
-        org_id=org_id, source_id=SOURCE_ID,
-        snapshot_date=date(year, 12, 31),
-        mandatory_programs_count=rint(1, 3),
-        optional_programs_count=rint(2, 8),
-        international_programs_count=0, has_developing_environment=False,
-        startup_projects_count=0,
-        additional_programs_json=[
-            {"name": "Финансовая грамотность для вкладчиков", "hours": 8,
-             "enrolled": rint(500, 5000), "certified_pct": float(rnd(80, 100))}
-        ],
-        circles_sections_json=[],
-        olympiad_participation_json=[],
-        parent_survey_results_json={"satisfaction_pct": float(rnd(70, 90)), "respondents": rint(100, 2000)},
-        academic_mobility_json={},
-        academic_performance_json={},
-        practice_partners_json=[],
-        **base_audit(year),
-    )
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Роутер: выбирает нужный генератор по типу орг.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -849,12 +675,10 @@ def gen_education_gons(org_id: str, year: int, size: str) -> dict:
 CONTINGENT_GEN = {
     "ДО": gen_contingent_do, "ДопО": gen_contingent_dopo,
     "СО": gen_contingent_so, "ТиППО": gen_contingent_tippo,
-    "Общ-е": gen_contingent_obsh,
 }
 FINANCE_GEN = {
     "ДО": gen_finance_do, "ДопО": gen_finance_dopo,
     "СО": gen_finance_so, "ТиППО": gen_finance_tippo,
-    "Общ-е": gen_finance_obsh, "ГОНС": gen_finance_gons,
 }
 GRADUATES_GEN = {
     "СО": gen_graduates_so, "ТиППО": gen_graduates_tippo,
@@ -862,7 +686,6 @@ GRADUATES_GEN = {
 EDUCATION_GEN = {
     "ДО": gen_education_do, "ДопО": gen_education_dopo,
     "СО": gen_education_so, "ТиППО": gen_education_tippo,
-    "Общ-е": gen_education_obsh, "ГОНС": gen_education_gons,
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1077,15 +900,14 @@ async def main() -> int:
                     # Финансы — у всех
                     await ins_finance(session, FINANCE_GEN[ot](org_id, year, size))
 
-                    # Наука — у всех кроме ГОНС и Общ-е (минимальная)
-                    if ot not in ("ГОНС", "Общ-е"):
-                        await ins_science(session, gen_science_minimal(org_id, year, size))
+                    # Наука — у всех (минимальная для ДО/ДопО/СО/ТиПО)
+                    await ins_science(session, gen_science_minimal(org_id, year, size))
 
                     # Выпускники — только СО и ТиППО
                     if ot in GRADUATES_GEN:
                         await ins_graduates(session, GRADUATES_GEN[ot](org_id, year, size))
 
-                    # Образовательный процесс — у всех кроме ГОНС имеет смысл
+                    # Образовательный процесс
                     if ot in EDUCATION_GEN:
                         await ins_education(session, EDUCATION_GEN[ot](org_id, year, size))
 
@@ -1102,8 +924,8 @@ async def main() -> int:
     print(f"   Лет данных: {len(YEARS)} (2020-2025)")
     print()
     for ot_code, cnt in sorted(org_type_stats.items()):
-        ot_name = {1:"ДО",2:"ДопО",3:"СО",4:"ТиППО",5:"ВиПО",6:"Общ-е",7:"ГОНС"}.get(
-            {"ДО":1,"ДопО":2,"СО":3,"ТиППО":4,"ВиПО":5,"Общ-е":6,"ГОНС":7}[ot_code], ot_code)
+        ot_name = {1:"ДО",2:"ДопО",3:"СО",4:"ТиППО",5:"ВиПО"}.get(
+            {"ДО":1,"ДопО":2,"СО":3,"ТиППО":4,"ВиПО":5}[ot_code], ot_code)
         print(f"   {ot_code:8s}: {cnt:2d} орг.")
     print("=" * 65)
     return 0

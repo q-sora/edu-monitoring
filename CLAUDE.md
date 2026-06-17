@@ -25,13 +25,22 @@
 ## Структура репозитория
 
 ```
-/opt/edu-monitoring/
+edu-monitoring/
 ├── edu_backend/                         # FastAPI
 │   ├── docker-compose.yml               # ← ВСЕ docker команды запускать отсюда
 │   ├── .env                             # переменные окружения (gitignored)
 │   ├── scripts/
 │   │   ├── create_superadmin.py         # Bootstrap суперадмина (--auto читает из .env)
-│   │   └── seed_all_subsystems.py       # Сид организаций по всем 7 подсистемам
+│   │   ├── seed_data.py                 # Справочники + 3 sample ВиПО орг.
+│   │   ├── seed_all_subsystems.py       # Сид организаций по всем 5 подсистемам + данные 2020-2025
+│   │   ├── seed_edu_assessments.py      # Сид org_indicator_assessments (017)
+│   │   ├── seed_trajectory.py           # Сид траекторий студентов
+│   │   ├── seed_coefficients.py         # Сид коэффициентов по уровням
+│   │   ├── seed_colleges_from_assessment.py
+│   │   ├── seed_astana_tippo_2025.py
+│   │   ├── seed_comprehensive.py
+│   │   ├── gen_bulk_data.py             # Генератор bulk-данных
+│   │   └── migrate_college_data.py
 │   └── app/
 │       ├── main.py                      # app factory, middleware, router mount
 │       ├── core/
@@ -47,11 +56,16 @@
 │       │   ├── finance.py              # FinanceRecord
 │       │   ├── science.py              # ScienceActivity
 │       │   ├── graduates.py            # GraduatesRecord
-│       │   └── education.py            # EducationalProcess
+│       │   ├── education.py            # EducationalProcess
+│       │   └── trajectory.py           # StudentRegistry, StudentSalary и др.
 │       ├── schemas/                     # Pydantic V2 schemas
 │       │   ├── organization.py         # OrganizationResponse, OrganizationListResponse
 │       │   ├── contingent.py           # ContingentSnapshotCreate
-│       │   └── finance.py              # ← эталон схемы
+│       │   ├── finance.py              # ← эталон схемы
+│       │   ├── education.py
+│       │   ├── graduates.py
+│       │   ├── science.py
+│       │   └── trajectory.py
 │       ├── api/
 │       │   ├── dependencies.py         # Auth, RBAC, session deps
 │       │   └── v1/
@@ -62,20 +76,23 @@
 │       ├── crud/
 │       │   ├── base.py                 # BaseCRUD (upsert, get, list)
 │       │   ├── registry.py             # contingent/finance/graduates/education CRUDs
-│       │   └── college_assessment_import.py  # Парсинг Excel оценки колледжей
+│       │   ├── college_assessment_import.py  # Парсинг Excel оценки колледжей
+│       │   ├── data_catalog_import.py
+│       │   └── universal_import.py
+│       ├── services/
 │       ├── migrations/
-│       │   ├── versions/
-│       │   │   ├── 0000_create_base_tables.py  # ← корневая миграция (base tables + seeds)
-│       │   │   ├── 0001_initial_schema.py       # triggers, RLS, GIN indexes
-│       │   │   ├── 0002_users_table.py          # users, refresh_tokens
-│       │   │   ├── 009_data_catalog.sql
-│       │   │   ├── 010_education_data.sql
-│       │   │   ├── 011_catalog_dimension_tables.sql
-│       │   │   ├── 012_catalog_fields_alter.sql
-│       │   │   ├── 013_college_assessment.sql
-│       │   │   ├── 015_college_assessment_block_scores.sql
-│       │   │   └── 016_student_trajectory.sql
-│       │   └── phase2/                 # 003–008 расширения domain-таблиц
+│       │   └── versions/
+│       │       ├── 0000_create_base_tables.py  # ← корневая миграция (base tables + seeds)
+│       │       ├── 0001_initial_schema.py       # triggers, RLS, GIN indexes
+│       │       ├── 0002_users_table.py          # users, refresh_tokens
+│       │       ├── 009_data_catalog.sql
+│       │       ├── 010_education_data.sql
+│       │       ├── 011_catalog_dimension_tables.sql
+│       │       ├── 012_catalog_fields_alter.sql
+│       │       ├── 013_college_assessment.sql
+│       │       ├── 015_college_assessment_block_scores.sql
+│       │       ├── 016_student_trajectory.sql
+│       │       └── 017_edu_level_assessments.sql  # org_indicator_assessments
 │       └── workers/
 │           ├── celery_app.py           # Celery config + beat schedule
 │           └── tasks.py               # sync_from_external (НОБД / ЕПВО)
@@ -83,16 +100,31 @@
     ├── tailwind.config.js
     └── src/
         ├── App.tsx                     # Routes
+        ├── main.tsx
         ├── index.css                   # Кастомные utility-классы
         ├── api/{client.ts,auth.ts}
         ├── auth/{AuthContext,LoginPage,ProtectedRoute,tokenStore,types}
         ├── layout/AppShell.tsx
+        ├── hooks/useApi.ts
+        ├── lib/animations.ts
+        ├── components/
+        │   ├── brand/Logo.tsx
+        │   ├── ui/{FormFields,index}.tsx
+        │   └── ErrorBoundary.tsx
         ├── pages/NotFoundPage.tsx
         └── features/
             ├── overview/OverviewPage.tsx
             ├── profile/ProfilePage.tsx
-            ├── edu-level/              # PreschoolPage, SchoolPage, TippoPage, DopoPage, VipoPage
-            ├── tippo/CollegesPage.tsx  # Рейтинг колледжей (→ /tippo/colleges)
+            ├── edu-level/              # PreschoolPage, SchoolPage, TippoPage, DopoPage, VipoPage, levelConfig.ts
+            ├── tippo/
+            │   ├── CollegesPage.tsx          # Рейтинг колледжей (→ /tippo/colleges)
+            │   ├── CollegeAssessmentPage.tsx
+            │   └── AstanaRatingTab.tsx
+            ├── contingent/
+            ├── finance/
+            ├── education/
+            ├── graduates/
+            ├── science/
             ├── gdp/GdpMacroPage.tsx
             ├── chain/ChainBreaksPage.tsx
             ├── roi/RoiGraduatePage.tsx
@@ -135,7 +167,7 @@
 
 ```
 Alembic: 0000 → 0001 → 0002
-SQL вручную: 009 → 010 → 011 → 012 → 013 → 015 → 016
+SQL вручную: 009 → 010 → 011 → 012 → 013 → 015 → 016 → 017
 ```
 
 014 (`school_rating.sql`) — **не применять**, таблица удалена из кодовой базы.
