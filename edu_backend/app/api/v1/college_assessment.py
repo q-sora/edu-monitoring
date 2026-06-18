@@ -91,6 +91,35 @@ async def get_ratings(
     }
 
 
+@router.get("/stats/gdp-baseline", summary="Макроэкономические базовые показатели из БД")
+async def get_gdp_baseline(
+    db: ReadDBSession,
+    user=Depends(require_role("superadmin", "admin", "management", "data_entry")),
+):
+    """Возвращает фактические показатели выпускников, трудоустройства по специальности и зарплаты из БД."""
+    res_grad = await db.execute(text("SELECT COUNT(*) FROM student_registry WHERE graduation_year IS NOT NULL;"))
+    graduates = res_grad.scalar() or 150
+    
+    res_match = await db.execute(text("""
+        SELECT 
+            COUNT(*),
+            COUNT(CASE WHEN specialty_match = TRUE THEN 1 END)
+        FROM student_employment;
+    """))
+    total_emp, matched_emp = res_match.fetchone()
+    match_pct = round(matched_emp / total_emp * 100, 1) if total_emp else 48.0
+    
+    res_sal = await db.execute(text("SELECT AVG(salary_amount) FROM student_salary;"))
+    avg_sal = res_sal.scalar()
+    avg_salary_base = round(float(avg_sal) / 1000, 1) if avg_sal else 403.0
+    
+    return {
+        "graduates": graduates,
+        "match_pct": match_pct,
+        "avg_salary_base": avg_salary_base
+    }
+
+
 @router.get("/stats/overview", summary="Сводная статистика по регионам")
 async def get_overview(
     db: ReadDBSession,

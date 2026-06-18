@@ -1,16 +1,14 @@
 // src/features/gdp/GdpMacroPage.tsx
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { PageHeader } from "@/components/ui";
+import client from "@/api/client";
 
 // ── Constants from reference model ───────────────────────────────────────────
 const GDP_BASE_TRN    = 120;    // ВВП РК 2023: $261.8 млрд ≈ 120 трлн тг
 const AVG_SALARY_BASE = 403;    // тыс тг/мес средняя зарплата РК (2024)
-// Целевая зарплата при 70% трудоустройстве по специальности — должна совпадать
-// с тем, что даёт умеренный сценарий, иначе ambitious < moderate при pisaDelta=0
-const POTENTIAL_SALARY = AVG_SALARY_BASE * (0.7 + 0.70 * 0.5); // ~423 тыс тг
 const PISA_GDP_COEFF  = 0.0087; // +1 балл PISA = +0.87% ВВП за 40 лет
 const MULTIPLIER      = 1.55;   // мультипликатор образования
 const TAX             = 0.21;
@@ -37,6 +35,7 @@ function StatCard({ label, value, sub, color }: { label: string; value: string; 
   );
 }
 
+// (Sliders, ScenarioCard, FormulaCard, PriorityItem omitted for brevity but remain identical)
 function Slider({
   label, hint, value, min, max, step, display,
   onChange,
@@ -109,18 +108,34 @@ export function GdpMacroPage() {
   const [graduates, setGraduates] = useState(150);
   const [matchPct,  setMatchPct]  = useState(48);
   const [pisaDelta, setPisaDelta] = useState(0);
+  const [avgSalaryBase, setAvgSalaryBase] = useState(AVG_SALARY_BASE);
+
+  useEffect(() => {
+    client.get("/college-assessment/stats/gdp-baseline")
+      .then(resp => {
+        const { graduates: g, match_pct: m, avg_salary_base: s } = resp.data;
+        const constrainedGraduates = Math.max(50, Math.min(300, g));
+        setGraduates(constrainedGraduates);
+        setMatchPct(Math.round(m));
+        setAvgSalaryBase(s);
+      })
+      .catch(err => {
+        console.error("Failed to load GDP baseline parameters from DB:", err);
+      });
+  }, []);
 
   const c = useMemo(() => {
     // currentAvgSal — тыс тг/мес; делим на 1e9 (не 1e12) чтобы получить трлн тг
-    // Кепируем на POTENTIAL_SALARY: иначе при matchPct > 70% base > moderate → diff1 < 0
-    const currentAvgSal   = Math.min(POTENTIAL_SALARY, AVG_SALARY_BASE * (0.7 + matchPct / 100 * 0.5));
+    // Кепируем на potentialSalary: иначе при matchPct > 70% base > moderate → diff1 < 0
+    const potentialSalary = avgSalaryBase * (0.7 + 0.70 * 0.5);
+    const currentAvgSal   = Math.min(potentialSalary, avgSalaryBase * (0.7 + matchPct / 100 * 0.5));
     const annualGDPContrib = graduates * 1000 * currentAvgSal * 12 * MULTIPLIER / 1e9;
     const pisaGDPEffect   = GDP_BASE_TRN * pisaDelta * PISA_GDP_COEFF;
-    const lossPerYear     = Math.max(0, (POTENTIAL_SALARY - currentAvgSal) * 12 * graduates * 1000 / 1e9);
+    const lossPerYear     = Math.max(0, (potentialSalary - currentAvgSal) * 12 * graduates * 1000 / 1e9);
 
     const base      = annualGDPContrib;
-    const moderate  = graduates * 1000 * (AVG_SALARY_BASE * (0.7 + 0.70 * 0.5)) * 12 * MULTIPLIER / 1e9;
-    const ambitious = graduates * 1000 * POTENTIAL_SALARY * 12 * MULTIPLIER / 1e9 * (1 + pisaDelta * 0.005);
+    const moderate  = graduates * 1000 * (avgSalaryBase * (0.7 + 0.70 * 0.5)) * 12 * MULTIPLIER / 1e9;
+    const ambitious = graduates * 1000 * potentialSalary * 12 * MULTIPLIER / 1e9 * (1 + pisaDelta * 0.005);
 
     const diff1Raw = (moderate  - base) / base * 100;
     const diff2Raw = (ambitious - base) / base * 100;
@@ -142,7 +157,7 @@ export function GdpMacroPage() {
     const budgetDiff1 = (moderate  - base) * TAX;
     const budgetDiff2 = (ambitious - base) * TAX;
     return { annualGDPContrib, pisaGDPEffect, lossPerYear, base, moderate, ambitious, diff1, diff2, budgetDiff1, budgetDiff2, sign, chartData, currentAvgSal };
-  }, [graduates, matchPct, pisaDelta]);
+  }, [graduates, matchPct, pisaDelta, avgSalaryBase]);
 
   return (
     <>
