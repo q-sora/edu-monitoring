@@ -22,6 +22,8 @@ from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 
+redis_available = True
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Pool — created once at startup, reused across all requests
 # ─────────────────────────────────────────────────────────────────────────────
@@ -71,6 +73,8 @@ async def get_cached(namespace: str, *key_parts: Any) -> Optional[Any]:
     Returns deserialised value from cache, or None on miss / error.
     Errors are swallowed: cache is advisory, not authoritative.
     """
+    if not redis_available:
+        return None
     r = get_redis()
     try:
         raw = await r.get(_cache_key(namespace, *key_parts))
@@ -87,6 +91,8 @@ async def set_cached(
     ttl: int = settings.CACHE_DEFAULT_TTL,
 ) -> None:
     """Serialise and store value. Silently swallows errors."""
+    if not redis_available:
+        return
     r = get_redis()
     try:
         await r.setex(
@@ -103,6 +109,8 @@ async def invalidate_prefix(namespace: str, *key_parts: Any) -> int:
     Delete a specific cache key.  Returns 1 if deleted, 0 if not found.
     For broader invalidations (e.g. all keys for an org) use SCAN + DEL.
     """
+    if not redis_available:
+        return 0
     r = get_redis()
     try:
         return await r.delete(_cache_key(namespace, *key_parts))
@@ -116,6 +124,8 @@ async def invalidate_org_cache(org_id: str) -> None:
     Batch-delete all cache keys that include this org_id.
     Uses SCAN to avoid blocking the Redis event loop (KEYS is dangerous).
     """
+    if not redis_available:
+        return
     r = get_redis()
     pattern = f"{_CACHE_PREFIX}*{org_id}*"
     cursor = 0
@@ -157,6 +167,8 @@ async def check_rate_limit(
         For strict accuracy under extreme concurrency use the token-bucket Lua
         approach (see rate_limit_strict below).
     """
+    if not redis_available:
+        return True, max_requests
     r = get_redis()
     bucket = int(__import__("time").time() // window_seconds)
     key = f"{_RL_PREFIX}{identifier}:{bucket}"
@@ -181,12 +193,16 @@ _BL_PREFIX = "edu:blacklist:"
 
 async def blacklist_token(jti: str, ttl_seconds: int) -> None:
     """Add a JWT ID to the blacklist with TTL matching remaining token lifetime."""
+    if not redis_available:
+        return
     r = get_redis()
     await r.setex(f"{_BL_PREFIX}{jti}", ttl_seconds, "1")
 
 
 async def is_token_blacklisted(jti: str) -> bool:
     """Returns True if this token has been revoked."""
+    if not redis_available:
+        return False
     r = get_redis()
     try:
         return await r.exists(f"{_BL_PREFIX}{jti}") == 1

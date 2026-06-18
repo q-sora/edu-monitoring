@@ -17,10 +17,9 @@ import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.dependencies import verify_token
+from app.api.dependencies import TokenPayload, verify_token
 from app.core.database import AsyncWriteSession
 from app.main import app
-from app.schemas.science import TokenPayload
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -79,9 +78,9 @@ async def client(db_session: AsyncSession, data_entry_token: TokenPayload):
 
     app.dependency_overrides[verify_token] = fake_verify_token
     # Override all DB deps
-    from app.api.dependencies import get_db_with_rls, get_read_db_dep
+    from app.api.dependencies import get_db_with_rls, get_read_db
     app.dependency_overrides[get_db_with_rls] = fake_get_db
-    app.dependency_overrides[get_read_db_dep] = fake_get_db
+    app.dependency_overrides[get_read_db] = fake_get_db
 
     async with AsyncClient(
         transport=ASGITransport(app=app),

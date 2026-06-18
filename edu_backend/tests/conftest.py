@@ -18,7 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from uuid import UUID, uuid4
 
 from app.api.dependencies import TokenPayload, UserRole, verify_token
-from app.api.dependencies import get_db_with_rls, get_read_db_dep
+from app.api.dependencies import get_db_with_rls, get_read_db
 from app.core.database import AsyncWriteSession
 from app.main import app
 
@@ -91,7 +91,7 @@ def _make_client(db_session: AsyncSession, token: TokenPayload) -> AsyncClient:
 
     app.dependency_overrides[verify_token]   = fake_verify_token
     app.dependency_overrides[get_db_with_rls] = fake_db
-    app.dependency_overrides[get_read_db_dep] = fake_db
+    app.dependency_overrides[get_read_db] = fake_db
 
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 

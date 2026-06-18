@@ -83,8 +83,15 @@ async def lifespan(app: FastAPI):
     await init_db()
 
     redis = get_redis()
-    pong = await redis.ping()
-    logger.info("Redis ping: %s", pong)
+    try:
+        pong = await redis.ping()
+        logger.info("Redis ping: %s", pong)
+        import app.core.redis_client as rc
+        rc.redis_available = True
+    except Exception as exc:
+        logger.warning("Redis is not available, skipping rate limiter and blacklist features: %s", exc)
+        import app.core.redis_client as rc
+        rc.redis_available = False
 
     register_audit_hooks()
 
