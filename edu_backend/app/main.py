@@ -50,7 +50,7 @@ from app.core.redis_client import close_redis, get_redis
 from app.models.mixins import register_audit_hooks
 
 # ── Router imports ────────────────────────────────────────────────────────────
-from app.api.v1 import admin, auth, college_assessment, trajectory
+from app.api.v1 import admin, auth, college_assessment, trajectory, edu_level
 
 logging.basicConfig(
     level=logging.INFO if not settings.DEBUG else logging.DEBUG,
@@ -202,6 +202,7 @@ def create_application() -> FastAPI:
     app.include_router(admin.router,              prefix=API_PREFIX)
     app.include_router(college_assessment.router, prefix=API_PREFIX)
     app.include_router(trajectory.router,         prefix=API_PREFIX)
+    app.include_router(edu_level.router,          prefix=API_PREFIX)
 
     # ── Health check (no auth required — used by load balancer) ──────────
     @app.get("/health", tags=["System"], include_in_schema=False)
