@@ -1,5 +1,6 @@
 // src/features/edu-level/PreschoolPage.tsx
 import React, { useState } from "react";
+import { useApi, EduLevelStats } from "@/hooks/useApi";
 import {
   ChevronDown
 } from "lucide-react";
@@ -341,6 +342,8 @@ export default function PreschoolPage() {
     setExpandedIndicators(prev => ({ ...prev, [indId]: !prev[indId] }));
   };
 
+  const { data: stats } = useApi<EduLevelStats>('/edu-level/do/stats?period_year=2026');
+
   return (
     <>
       {/* Page Header */}
@@ -363,7 +366,7 @@ export default function PreschoolPage() {
                 <h2 className="text-base font-bold text-slate-800">Дошкольное воспитание и обучение</h2>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
-                    <b>11 909</b> организаций в РК
+                    <b>{stats?.summary.org_count ?? "—"}</b> орг. в системе
                   </span>
                   <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
                     ГОЗ: <b>924</b> млрд тг
@@ -384,16 +387,19 @@ export default function PreschoolPage() {
                 <span className="block text-xl font-bold font-display tracking-tight text-emerald-700">70-100</span>
                 <span className="block text-xs font-semibold mt-1">Сильный</span>
                 <p className="text-xs opacity-90 mt-1">Стимулирующий пакет, приоритет инвестиций</p>
+                {stats && <span className="block text-xs tabular-nums font-bold mt-2 text-emerald-700">{stats.summary.zones.green} орг.</span>}
               </div>
               <div className="rounded-xl border border-amber-200 bg-[#FFFBEB] p-4 text-amber-800 shadow-fc-sm">
                 <span className="block text-xl font-bold font-display tracking-tight text-amber-700">40-69</span>
                 <span className="block text-xs font-semibold mt-1">Средний</span>
                 <p className="text-xs opacity-90 mt-1">База + план МИО</p>
+                {stats && <span className="block text-xs tabular-nums font-bold mt-2 text-amber-700">{stats.summary.zones.yellow} орг.</span>}
               </div>
               <div className="rounded-xl border border-red-200 bg-[#FEF2F2] p-4 text-red-800 shadow-fc-sm">
                 <span className="block text-xl font-bold font-display tracking-tight text-red-700">0-39</span>
                 <span className="block text-xs font-semibold mt-1">Слабый</span>
                 <p className="text-xs opacity-90 mt-1">База + план МИО + надзор</p>
+                {stats && <span className="block text-xs tabular-nums font-bold mt-2 text-red-700">{stats.summary.zones.red} орг.</span>}
               </div>
             </div>
 

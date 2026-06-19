@@ -38,6 +38,18 @@ export async function mutate<T = unknown>(
 
 export interface Region { id: number; name_ru: string; code: string; type: string; }
 
+export interface EduLevelStats {
+  period_year: number;
+  edu_level: string;
+  summary: {
+    org_count: number;
+    avg_score: number;
+    zones: { green: number; yellow: number; red: number };
+  };
+  blocks: Array<{ id: string; title: string; weight: number; avg_score: number; avg_pct: number }>;
+  orgs: Array<{ id: number; name: string; total_score: number; zone: string }>;
+}
+
 export function useRegions() {
   const [regions, setRegions] = useState<Region[]>([]);
   useEffect(() => {
