@@ -171,3 +171,55 @@ async def get_edu_level_stats(
         "blocks": blocks_data,
         "orgs": orgs_list
     }
+
+
+@router.get("/{level}/sector-stats", summary="Справочные данные сектора (ГОЗ и количество организаций)")
+async def get_edu_level_sector_stats(
+    db: ReadDBSession,
+    level: str = Path(..., description="Уровень образования (do, so, dopo, tippo, vipo)"),
+    period_year: Optional[int] = Query(None, description="Год оценки"),
+    _token: TokenPayload = Depends(verify_token),
+) -> dict:
+    if level not in ("do", "so", "dopo", "tippo", "vipo"):
+        raise HTTPException(
+            status_code=422,
+            detail=f"Invalid level '{level}'. Must be one of: do, so, dopo, tippo, vipo"
+        )
+
+    # 1. Если год не указан, берем максимальный доступный для этого уровня
+    if period_year is None:
+        year_query = text("""
+            SELECT MAX(period_year) 
+            FROM edu_level_sector_stats 
+            WHERE edu_level = :level
+        """)
+        res = await db.execute(year_query, {"level": level})
+        period_year = res.scalar()
+
+        if period_year is None:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No sector stats found for level '{level}'"
+            )
+
+    # 2. Выбираем данные за этот год
+    query = text("""
+        SELECT total_orgs_rk, goz_billion_kzt
+        FROM edu_level_sector_stats
+        WHERE edu_level = :level AND period_year = :year
+    """)
+    res = await db.execute(query, {"level": level, "year": period_year})
+    row = res.mappings().first()
+
+    if not row:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Sector stats not found for level '{level}' and year {period_year}"
+        )
+
+    return {
+        "edu_level": level,
+        "period_year": period_year,
+        "total_orgs_rk": row["total_orgs_rk"],
+        "goz_billion_kzt": float(row["goz_billion_kzt"]) if row["goz_billion_kzt"] is not None else None
+    }
