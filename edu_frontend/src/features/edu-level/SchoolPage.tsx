@@ -1,6 +1,6 @@
 // src/features/edu-level/SchoolPage.tsx
 import React, { useState } from "react";
-import { useApi, EduLevelStats } from "@/hooks/useApi";
+import { useApi, EduLevelStats, EduLevelSectorStats } from "@/hooks/useApi";
 import {
   ChevronDown
 } from "lucide-react";
@@ -401,7 +401,8 @@ export default function SchoolPage() {
     setExpandedIndicators(prev => ({ ...prev, [indId]: !prev[indId] }));
   };
 
-  const { data: stats } = useApi<EduLevelStats>('/edu-level/so/stats?period_year=2026');
+  const { data: stats }       = useApi<EduLevelStats>('/edu-level/so/stats?period_year=2026');
+  const { data: sectorStats } = useApi<EduLevelSectorStats>('/edu-level/so/sector-stats?period_year=2026');
 
   return (
     <>
@@ -426,7 +427,7 @@ export default function SchoolPage() {
                     <b>{stats?.summary.org_count ?? "—"}</b> орг. в системе
                   </span>
                   <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
-                    ГОЗ: <b>3 600</b> млрд тг
+                    ГОЗ: <b>{sectorStats?.goz_billion_kzt != null ? Math.round(sectorStats.goz_billion_kzt).toLocaleString('ru-RU') : "—"}</b> млрд тг
                   </span>
                   <span className="text-xs text-slate-500 bg-slate-50 border border-slate-100 px-3 py-1 rounded-full">
                     <b>4</b> блока оценки

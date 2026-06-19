@@ -38,6 +38,13 @@ export async function mutate<T = unknown>(
 
 export interface Region { id: number; name_ru: string; code: string; type: string; }
 
+export interface EduLevelSectorStats {
+  edu_level: string;
+  period_year: number;
+  total_orgs_rk: number | null;
+  goz_billion_kzt: number | null;
+}
+
 export interface EduLevelStats {
   period_year: number;
   edu_level: string;
